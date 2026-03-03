@@ -624,26 +624,15 @@ function LoanSection({ id, styles, darkMode, textSub, GOLD, cardBorder, activeLo
     try {
       await fetch(GOOGLE_SCRIPT_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain" },
         body: JSON.stringify(crmPayload),
       });
     } catch (err) {
       console.error("Loan form submission error:", err);
     }
-    const waLines = [
-      `Loan Type: ${activeLoan.charAt(0).toUpperCase() + activeLoan.slice(1)} Loan`,
-      `Name: ${leadForm.name}`, `Mobile: ${leadForm.mobile}`, `City: ${leadForm.city}`, `Amount: ${leadForm.amount}`,
-      leadForm.income ? `Monthly Income: ${leadForm.income}` : "",
-      leadForm.employment ? `Employment: ${leadForm.employment}` : "",
-      leadForm.companyName ? `Employer: ${leadForm.companyName}` : "",
-      leadForm.businessName ? `Business: ${leadForm.businessName}${leadForm.businessType ? " (" + leadForm.businessType + ")" : ""}` : "",
-      leadForm.propertyType ? `Property Type: ${leadForm.propertyType}` : "",
-      leadForm.propertyLocation ? `Property Location: ${leadForm.propertyLocation}` : "",
-      leadForm.propertyValue ? `Property Value: ${leadForm.propertyValue}` : "",
-    ].filter(Boolean).join("\n");
     showToast("Application submitted! Our team will contact you shortly.");
     setSubmitted(true);
-    setTimeout(() => { window.open(`https://wa.me/919876543210?text=${encodeURIComponent("Hi! I just submitted a loan application.\n" + waLines)}`, "_blank"); }, 1200);
   };
 
   return (
@@ -1659,16 +1648,15 @@ function InsuranceSection({ id, styles, darkMode, textSub, GOLD, cardBorder, act
     try {
       await fetch(GOOGLE_SCRIPT_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain" },
         body: JSON.stringify(crmPayload),
       });
     } catch (err) {
       console.error("Insurance form submission error:", err);
     }
-    const msg = `Hi! I need ${insuranceForm.insuranceType} insurance advisory. Name: ${insuranceForm.name}, Age: ${insuranceForm.age}, City: ${insuranceForm.city}, Sum Assured: ${insuranceForm.sumAssured}. Product Type: Insurance.`;
     showToast("Enquiry submitted! Our advisor will contact you shortly.");
     setInsuranceSubmitted(true);
-    setTimeout(() => { window.open(`https://wa.me/919876543210?text=${encodeURIComponent(msg)}`, "_blank"); }, 1200);
   };
   return (
     <section id={id} ref={ref} style={styles.section}>
