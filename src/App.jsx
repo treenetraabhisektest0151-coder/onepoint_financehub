@@ -107,7 +107,7 @@ export default function App() {
   const [activeSection, setActiveSection] = useState("home");
   const [activeLoan, setActiveLoan] = useState("personal");
   const [mobileMenu, setMobileMenu] = useState(false);
-  const [leadForm, setLeadForm] = useState({ name: "", mobile: "", email: "", loanType: "personal", amount: "", city: "", income: "", employment: "", companyName: "", businessName: "", businessType: "", propertyType: "", propertyLocation: "", propertyValue: "" });
+  const [leadForm, setLeadForm] = useState({ name: "", mobile: "", email: "", loanType: "personal", amount: "", city: "", income: "", employment: "", companyName: "", businessName: "", businessType: "", yearlyTurnover: "", propertyType: "", propertyLocation: "", propertyValue: "" });
   const [subDsaForm, setSubDsaForm] = useState({ name: "", mobile: "", email: "", city: "", experience: "", leads: "", tieups: "" });
   const [emiForm, setEmiForm] = useState({ principal: 500000, rate: 12, tenure: 36 });
   const [cibilScore, setCibilScore] = useState(750);
@@ -597,11 +597,14 @@ function LoanSection({ id, styles, darkMode, textSub, GOLD, cardBorder, activeLo
     if (!leadForm.name || !leadForm.mobile) { showToast("Please fill required fields", "error"); return; }
 
     if (activeLoan === "personal") {
+      if (!(leadForm.income || "").trim()) { showToast("Please enter your Monthly Income", "error"); return; }
       if (!(leadForm.companyName || "").trim()) { showToast("Please enter your Company Name (Current Employer)", "error"); return; }
     }
     if (activeLoan === "business") {
       if (!(leadForm.businessName || "").trim()) { showToast("Please enter your Business Name", "error"); return; }
       if (!leadForm.businessType) { showToast("Please select your Business Type", "error"); return; }
+      if (!(leadForm.yearlyTurnover || "").trim()) { showToast("Please enter your Yearly Turnover", "error"); return; }
+      if (!(leadForm.income || "").trim()) { showToast("Please enter your Monthly Income (as per ITR)", "error"); return; }
     }
     if (activeLoan === "home") {
       if (!leadForm.income || !leadForm.employment) { showToast("Please fill Employment details", "error"); return; }
@@ -616,7 +619,7 @@ function LoanSection({ id, styles, darkMode, textSub, GOLD, cardBorder, activeLo
       city: leadForm.city, productType: "Loan", loanType: activeLoan, loanAmount: leadForm.amount,
       monthlyIncome: leadForm.income || "", employmentType: leadForm.employment || "",
       companyName: leadForm.companyName || "", businessName: leadForm.businessName || "",
-      businessType: leadForm.businessType || "", propertyType: leadForm.propertyType || "",
+      businessType: leadForm.businessType || "", yearlyTurnover: leadForm.yearlyTurnover || "", propertyType: leadForm.propertyType || "",
       propertyLocation: leadForm.propertyLocation || "", propertyValue: leadForm.propertyValue || "",
       leadSource: "Website", leadStatus: "New", assignedAgent: "", followUpDate: "",
       notes: `Loan: ${activeLoan}, Amount: ${leadForm.amount}`,
@@ -686,10 +689,16 @@ function LoanSection({ id, styles, darkMode, textSub, GOLD, cardBorder, activeLo
 
                 {/* FIX 2: Personal Loan — Company Name after City */}
                 {activeLoan === "personal" && (
-                  <div style={{ gridColumn: "1/-1", animation: "fadeSlideIn 0.25s ease forwards" }}>
-                    <label style={styles.label}>Company Name (Current Employer) *</label>
-                    <input style={styles.input} value={leadForm.companyName} onChange={e => setLeadForm({ ...leadForm, companyName: e.target.value })} placeholder="Enter your employer / company name" />
-                  </div>
+                  <>
+                    <div style={{ animation: "fadeSlideIn 0.25s ease forwards" }}>
+                      <label style={styles.label}>Monthly Income *</label>
+                      <input style={styles.input} value={leadForm.income} onChange={e => setLeadForm({ ...leadForm, income: e.target.value })} placeholder="e.g. ₹50,000" />
+                    </div>
+                    <div style={{ animation: "fadeSlideIn 0.25s ease 0.06s both" }}>
+                      <label style={styles.label}>Company Name (Current Employer) *</label>
+                      <input style={styles.input} value={leadForm.companyName} onChange={e => setLeadForm({ ...leadForm, companyName: e.target.value })} placeholder="Enter your employer / company name" />
+                    </div>
+                  </>
                 )}
 
                 {/* FIX 3: Business Loan — Business Name + Business Type after City */}
@@ -708,6 +717,14 @@ function LoanSection({ id, styles, darkMode, textSub, GOLD, cardBorder, activeLo
                       <option value="LLP">LLP</option>
                       <option value="Other">Other</option>
                     </select>
+                  </div>
+                  <div style={{ animation: "fadeSlideIn 0.25s ease 0.12s both" }}>
+                    <label style={styles.label}>Yearly Turnover *</label>
+                    <input style={styles.input} value={leadForm.yearlyTurnover || ""} onChange={e => setLeadForm({ ...leadForm, yearlyTurnover: e.target.value })} placeholder="e.g. ₹25,00,000" />
+                  </div>
+                  <div style={{ animation: "fadeSlideIn 0.25s ease 0.18s both" }}>
+                    <label style={styles.label}>Monthly Income (as per ITR) *</label>
+                    <input style={styles.input} value={leadForm.income} onChange={e => setLeadForm({ ...leadForm, income: e.target.value })} placeholder="e.g. ₹80,000" />
                   </div>
                 </>}
 
@@ -991,14 +1008,43 @@ function TaxSection({ id, styles, darkMode, textSub, GOLD, cardBorder, showToast
   const [active, setActive] = useState("itr");
   const [form, setForm] = useState({ name: "", mobile: "", email: "", message: "" });
   const services = [
-    { id: "itr", icon: "📋", title: "ITR Filing", desc: "Income Tax Return filing for individuals, salaried, and self-employed. All ITR forms covered.", price: "From ₹499" },
-    { id: "gst-reg", icon: "🏛️", title: "GST Registration", desc: "Complete GST registration for new businesses. GSTIN in 3-7 working days.", price: "From ₹999" },
+    { id: "itr", icon: "📋", title: "ITR Filing", desc: "Income Tax Return filing for individuals, salaried, and self-employed. All ITR forms covered.", price: "From ₹1,000" },
+    { id: "gst-reg", icon: "🏛️", title: "GST Registration", desc: "Complete GST registration for new businesses. GSTIN in 3-7 working days.", price: "From ₹2,000" },
     { id: "gst-return", icon: "📊", title: "GST Return Filing", desc: "Monthly, quarterly, and annual GST return filing. GSTR-1, GSTR-3B, GSTR-9.", price: "From ₹599/mo" },
     { id: "tax-plan", icon: "💡", title: "Tax Planning", desc: "Advanced tax saving strategies. Maximize deductions under 80C, 80D, HRA, and more.", price: "From ₹1,499" },
     { id: "roc", icon: "🏢", title: "ROC Compliance", desc: "Annual return filing, director KYC, and company compliance for Pvt Ltd firms.", price: "From ₹3,999" },
   ];
   const current = services.find(s => s.id === active);
-  const handleEnquiry = () => { if (!form.name || !form.mobile) { showToast("Please fill required fields", "error"); return; } showToast("Enquiry submitted! Our tax expert will contact you soon."); setForm({ name: "", mobile: "", email: "", message: "" }); };
+  const handleEnquiry = async () => {
+    if (!form.name || !form.mobile) { showToast("Please fill required fields", "error"); return; }
+    const crmPayload = {
+      timestamp: new Date().toISOString(),
+      fullName: form.name,
+      mobile: form.mobile,
+      email: form.email || "",
+      city: "",
+      productType: "Taxation",
+      loanType: current.title,
+      monthlyIncome: "",
+      employmentType: "",
+      loanAmount: current.price,
+      leadSource: "Website",
+      leadStatus: "New",
+      notes: `Service: ${current.title} | Message: ${form.message}`,
+    };
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify(crmPayload),
+      });
+    } catch (err) {
+      console.error("Tax enquiry submission error:", err);
+    }
+    showToast("Enquiry submitted! Our tax expert will contact you soon.");
+    setForm({ name: "", mobile: "", email: "", message: "" });
+  };
   return (
     <section id={id} style={{ ...styles.section, background: darkMode ? "rgba(59,130,246,0.04)" : "rgba(59,130,246,0.04)", borderRadius: 32, margin: "0 24px 60px", padding: "80px 60px" }}>
       <div style={{ textAlign: "center", marginBottom: 50 }}>
@@ -1053,7 +1099,36 @@ function MFSection({ id, styles, darkMode, textSub, GOLD, cardBorder, sipForm, s
     { type: "hybrid", icon: "⚖️", name: "Hybrid Funds", risk: "Medium", returns: "9-12% p.a.", desc: "Balance of equity and debt. Moderate risk profile.", color: GOLD },
     { type: "elss", icon: "🎯", name: "ELSS Funds", risk: "High", returns: "12-15% p.a.", desc: "Tax saving under 80C. 3-year lock-in period.", color: "#A855F7" },
   ];
-  const handleEnquiry = () => { if (!form.name || !form.mobile) { showToast("Please fill required fields", "error"); return; } showToast("Investment enquiry submitted! We'll connect you with a certified advisor."); setForm({ name: "", mobile: "", amount: "" }); };
+  const handleEnquiry = async () => {
+    if (!form.name || !form.mobile) { showToast("Please fill required fields", "error"); return; }
+    const crmPayload = {
+      timestamp: new Date().toISOString(),
+      fullName: form.name,
+      mobile: form.mobile,
+      email: "",
+      city: "",
+      productType: "Mutual Fund",
+      loanType: "SIP / Mutual Fund",
+      monthlyIncome: "",
+      employmentType: "",
+      loanAmount: form.amount || "",
+      leadSource: "Website",
+      leadStatus: "New",
+      notes: `Monthly SIP: ${form.amount} | Risk Profile: ${riskProfile}`,
+    };
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify(crmPayload),
+      });
+    } catch (err) {
+      console.error("MF enquiry submission error:", err);
+    }
+    showToast("Investment enquiry submitted! We'll connect you with a certified advisor.");
+    setForm({ name: "", mobile: "", amount: "" });
+  };
   const years = sipForm.years;
   const bars = Array.from({ length: Math.min(years, 10) }, (_, i) => { const y = Math.floor((i + 1) * years / Math.min(years, 10)); const res = calcSIP(sipForm.monthly, sipForm.rate, y); return { year: y, fv: Number(res.fv), invested: Number(res.invested) }; });
   const maxFV = Math.max(...bars.map(b => b.fv), 1);
