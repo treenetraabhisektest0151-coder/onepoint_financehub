@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 
+// ─── GOOGLE APPS SCRIPT ENDPOINT ────────────────────────────────────────────
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyjwCYGp0GZ_AVO__UUgqsBFgifrHZpHJPcVAkZcRDHvxzW70ARl_zLAOfmZ20a9bYi/exec";
+
 // ─── THEME & GLOBALS ────────────────────────────────────────────────────────
 const GOLD = "#C9A84C";
 const NAVY = "#0A0F1E";
@@ -590,7 +593,7 @@ function LoanSection({ id, styles, darkMode, textSub, GOLD, cardBorder, activeLo
   };
   const el = eligibility[activeLoan];
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!leadForm.name || !leadForm.mobile) { showToast("Please fill required fields", "error"); return; }
 
     if (activeLoan === "personal") {
@@ -618,7 +621,15 @@ function LoanSection({ id, styles, darkMode, textSub, GOLD, cardBorder, activeLo
       leadSource: "Website", leadStatus: "New", assignedAgent: "", followUpDate: "",
       notes: `Loan: ${activeLoan}, Amount: ${leadForm.amount}`,
     };
-    fetch("YOUR_GOOGLE_APPS_SCRIPT_WEBHOOK_URL", { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(crmPayload) }).catch(() => {});
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(crmPayload),
+      });
+    } catch (err) {
+      console.error("Loan form submission error:", err);
+    }
     const waLines = [
       `Loan Type: ${activeLoan.charAt(0).toUpperCase() + activeLoan.slice(1)} Loan`,
       `Name: ${leadForm.name}`, `Mobile: ${leadForm.mobile}`, `City: ${leadForm.city}`, `Amount: ${leadForm.amount}`,
@@ -1642,10 +1653,18 @@ function InsuranceSection({ id, styles, darkMode, textSub, GOLD, cardBorder, act
   };
   const currentDetail = details[activeInsurance];
   const currentType = insuranceTypes.find(t => t.key === activeInsurance);
-  const handleInsSubmit = () => {
+  const handleInsSubmit = async () => {
     if (!insuranceForm.name || !insuranceForm.mobile) { showToast("Please fill required fields", "error"); return; }
     const crmPayload = { timestamp: new Date().toISOString(), fullName: insuranceForm.name, mobile: insuranceForm.mobile, city: insuranceForm.city, productType: "Insurance", loanType: insuranceForm.insuranceType, monthlyIncome: "", employmentType: "", leadSource: "Website", leadStatus: "New", assignedAgent: "", followUpDate: "", notes: `Age: ${insuranceForm.age}, Sum Assured: ${insuranceForm.sumAssured}, Existing Policy: ${insuranceForm.existingPolicy}` };
-    fetch("YOUR_GOOGLE_APPS_SCRIPT_WEBHOOK_URL", { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(crmPayload) }).catch(() => {});
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(crmPayload),
+      });
+    } catch (err) {
+      console.error("Insurance form submission error:", err);
+    }
     const msg = `Hi! I need ${insuranceForm.insuranceType} insurance advisory. Name: ${insuranceForm.name}, Age: ${insuranceForm.age}, City: ${insuranceForm.city}, Sum Assured: ${insuranceForm.sumAssured}. Product Type: Insurance.`;
     showToast("Enquiry submitted! Our advisor will contact you shortly.");
     setInsuranceSubmitted(true);
