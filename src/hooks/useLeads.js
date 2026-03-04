@@ -86,6 +86,10 @@ export default function useLeads() {
       const matchType   = typeF === "All" || l.loanType === typeF;
       const matchDate   = !dateF || (l.timestamp || "").includes(dateF);
       return matchSearch && matchStatus && matchType && matchDate;
+    }).sort((a, b) => {
+      const numA = parseInt(a.id.replace("LEAD-", "")) || 0;
+      const numB = parseInt(b.id.replace("LEAD-", "")) || 0;
+      return numB - numA;
     });
   }, [leads, search, statusF, typeF, dateF]);
 
