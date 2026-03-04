@@ -10,24 +10,37 @@ const NAVY2 = "#0D1530";
 const GLASS = "rgba(255,255,255,0.04)";
 
 const BANKS = [
-  { name: "HDFC Bank", domain: "hdfcbank.com" },
-  { name: "ICICI Bank", domain: "icicibank.com" },
-  { name: "Axis Bank", domain: "axisbank.com" },
-  { name: "Kotak Mahindra", domain: "kotak.com" },
-  { name: "IndusInd Bank", domain: "indusind.com" },
-  { name: "Yes Bank", domain: "yesbank.in" },
-  { name: "IDFC First Bank", domain: "idfcfirstbank.com" },
-  { name: "RBL Bank", domain: "rblbank.com" },
+  { name: "HDFC Bank", logo: "/logos/hdfc.png" },
+  { name: "ICICI Bank", logo: "/logos/icici.jpg" },
+  { name: "Axis Bank", logo: "/logos/axis.jpg" },
+  { name: "Kotak Mahindra Bank", logo: "/logos/kotak.jpg" },
+  { name: "IndusInd Bank", logo: "/logos/indusind.jpg" },
+  { name: "Yes Bank", logo: "/logos/yesbank.webp" },
+  { name: "IDFC First Bank", logo: "/logos/idfc.jpg" },
+  { name: "RBL Bank", logo: "/logos/rbl.jpg" },
+  { name: "Bandhan Bank", logo: "/logos/bandhan.webp" },
 ];
 
 const NBFCS = [
-  { name: "Bajaj Finserv", domain: "bajajfinserv.in" },
-  { name: "Tata Capital", domain: "tatacapital.com" },
-  { name: "Aditya Birla Finance", domain: "adityabirlacapital.com" },
-  { name: "L&T Finance", domain: "ltfs.com" },
-  { name: "SMFG India Credit", domain: "smfgindiacredit.com" },
-  { name: "Poonawala Fincorp", domain: "poonawallafincorp.com" },
-  { name: "Hero Fincorp", domain: "herofincorp.com" },
+  { name: "Bajaj Finserv", logo: "/logos/bajaj.png" },
+  { name: "Tata Capital", logo: "/logos/tata.png" },
+  { name: "L&T Finance", logo: "/logos/lt.png" },
+  { name: "SMFG India Credit", logo: "/logos/smfg.png" },
+  { name: "Poonawalla Fincorp", logo: "/logos/poonawalla.jpg" },
+  { name: "Hero FinCorp", logo: "/logos/hero.png" },
+  { name: "Shriram Finance", logo: "/logos/shriram.png" },
+  { name: "Piramal Finance", logo: "/logos/piramal.jpg" },
+  { name: "Finnable", logo: "/logos/finnable.png" },
+  { name: "PaySense", logo: "/logos/paysense.png" },
+];
+
+const INSURERS = [
+  { name: "LIC", logo: "/logos/lic.webp" },
+  { name: "HDFC Life", logo: "/logos/hdfclife.png" },
+  { name: "ICICI Prudential", logo: "/logos/icicipru.jpg" },
+  { name: "SBI Life", logo: "/logos/sbilife.png" },
+  { name: "Tata AIA", logo: "/logos/tataaia.png" },
+  { name: "Max Life", logo: "/logos/maxlife.webp" },
 ];
 
 const LOAN_DOCS = {
@@ -1204,36 +1217,161 @@ function MFSection({ id, styles, darkMode, textSub, GOLD, cardBorder, sipForm, s
 // ═══════════════════════════════════════════════════════════════════════════════
 // BANK PARTNERS
 // ═══════════════════════════════════════════════════════════════════════════════
-function BankSection({ id, styles, darkMode, textSub, GOLD, cardBorder }) {
-  const [ref, inView] = useInView(0.2);
+function LogoCard({ item, inView, delay, darkMode, textSub, GOLD, cardBorder, size = 52 }) {
+  const [hovered, setHovered] = useState(false);
+  const [imgError, setImgError] = useState(false);
   return (
-    <section id={id} ref={ref} style={{ ...styles.section, background: darkMode ? "rgba(255,255,255,0.02)" : "rgba(10,15,30,0.03)", borderRadius: 32, margin: "0 24px 60px", padding: "80px 60px" }}>
-      <div style={{ textAlign: "center", marginBottom: 50 }}>
+    <div
+      className={inView ? "fade-in" : ""}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: hovered
+          ? (darkMode ? "rgba(201,168,76,0.10)" : "rgba(201,168,76,0.12)")
+          : (darkMode ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.85)"),
+        border: `1px solid ${hovered ? GOLD + "66" : cardBorder}`,
+        borderRadius: 16,
+        padding: "18px 10px 14px",
+        textAlign: "center",
+        cursor: "default",
+        transition: "all 0.3s ease",
+        transform: hovered ? "translateY(-5px) scale(1.04)" : "translateY(0) scale(1)",
+        boxShadow: hovered
+          ? `0 12px 36px ${GOLD}28, 0 0 0 1px ${GOLD}33`
+          : (darkMode ? "0 4px 20px rgba(0,0,0,0.3)" : "0 4px 16px rgba(10,15,30,0.08)"),
+        animationDelay: delay,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 8,
+        minHeight: 90,
+        justifyContent: "center",
+      }}
+    >
+      {(item.logo && !imgError) ? (
+        <img
+          src={item.logo}
+          alt={item.name}
+          onError={() => setImgError(true)}
+          style={{
+            width: size,
+            height: size,
+            objectFit: "contain",
+            display: "block",
+            filter: hovered ? "none" : (darkMode ? "grayscale(40%) opacity(0.80)" : "grayscale(20%) opacity(0.90)"),
+            transition: "filter 0.3s",
+          }}
+        />
+      ) : (
+        <div style={{
+          width: size,
+          height: size,
+          borderRadius: 12,
+          background: item.color ? `${item.color}22` : `${GOLD}18`,
+          border: `1px solid ${item.color ? item.color + "44" : GOLD + "44"}`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 13,
+          fontWeight: 900,
+          color: item.color || GOLD,
+          letterSpacing: "0.03em",
+        }}>
+          {item.abbr || item.name.split(" ").map(w => w[0]).join("").slice(0, 4)}
+        </div>
+      )}
+      <div style={{ fontSize: 11, color: hovered ? GOLD : textSub, fontWeight: 700, lineHeight: 1.3, transition: "color 0.3s", maxWidth: 90, wordBreak: "break-word" }}>
+        {item.name}
+      </div>
+    </div>
+  );
+}
+
+function PartnerGroup({ title, badge, items, inView, darkMode, textSub, GOLD, cardBorder, logoSize }) {
+  return (
+    <div style={{ marginBottom: 44 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: GOLD, letterSpacing: "0.12em", background: `${GOLD}14`, border: `1px solid ${GOLD}33`, borderRadius: 20, padding: "4px 14px" }}>{badge}</div>
+        <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${GOLD}33, transparent)` }} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }} className="partner-logo-grid">
+        {items.map((item, i) => (
+          <LogoCard key={item.name} item={item} inView={inView} delay={`${i * 0.07}s`} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} size={logoSize || 48} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BankSection({ id, styles, darkMode, textSub, GOLD, cardBorder }) {
+  const [ref, inView] = useInView(0.1);
+  return (
+    <section id={id} ref={ref} style={{ ...styles.section, background: darkMode ? "rgba(255,255,255,0.02)" : "rgba(10,15,30,0.03)", borderRadius: 32, margin: "0 24px 60px", padding: "80px 48px", overflow: "hidden" }}>
+      <style>{`
+        @media (min-width: 640px) { .partner-logo-grid { grid-template-columns: repeat(3, 1fr) !important; } }
+        @media (min-width: 1024px) { .partner-logo-grid { grid-template-columns: repeat(5, 1fr) !important; } }
+        .partner-logo-grid-nbfc { grid-template-columns: repeat(2, 1fr) !important; }
+        @media (min-width: 640px) { .partner-logo-grid-nbfc { grid-template-columns: repeat(3, 1fr) !important; } }
+        @media (min-width: 1024px) { .partner-logo-grid-nbfc { grid-template-columns: repeat(4, 1fr) !important; } }
+        .partner-logo-grid-ins { grid-template-columns: repeat(2, 1fr) !important; }
+        @media (min-width: 640px) { .partner-logo-grid-ins { grid-template-columns: repeat(3, 1fr) !important; } }
+        @media (min-width: 1024px) { .partner-logo-grid-ins { grid-template-columns: repeat(6, 1fr) !important; } }
+      `}</style>
+
+      {/* Header */}
+      <div style={{ textAlign: "center", marginBottom: 52 }}>
         <div style={{ ...styles.tag, marginBottom: 16 }}>NETWORK</div>
         <h2 style={styles.sectionTitle}>Our <span style={styles.goldGrad}>Lending Partners</span></h2>
-        <p style={{ color: textSub, fontSize: 16 }}>We work with India's leading banks and financial institutions to find you the best offer</p>
+        <p style={{ color: textSub, fontSize: 16, maxWidth: 540, margin: "0 auto" }}>
+          We work with India's leading banks, NBFCs, and insurers to find you the best offer
+        </p>
       </div>
-      <div style={{ marginBottom: 30 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: GOLD, letterSpacing: "0.08em", marginBottom: 18 }}>BANKS</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: 16 }}>
-          {BANKS.slice(0, 8).map((b, i) => (
-            <div key={b.name} className={`hover-card ${inView ? "fade-in" : ""}`} style={{ ...styles.glassCard, padding: 16, textAlign: "center", animationDelay: `${i * 0.05}s` }}>
-              <img src={`https://logo.clearbit.com/${b.domain}`} alt={b.name} className="bank-logo" style={{ width: 48, height: 48, objectFit: "contain", margin: "0 auto 8px", display: "block" }} onError={e => { e.target.style.display = "none"; }} />
-              <div style={{ fontSize: 10, color: textSub, fontWeight: 600, lineHeight: 1.3 }}>{b.name}</div>
-            </div>
+
+      {/* Banks */}
+      <div style={{ marginBottom: 44 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: GOLD, letterSpacing: "0.12em", background: `${GOLD}14`, border: `1px solid ${GOLD}33`, borderRadius: 20, padding: "4px 14px" }}>🏦 OUR LENDING PARTNERS</div>
+          <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${GOLD}33, transparent)` }} />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }} className="partner-logo-grid">
+          {BANKS.map((item, i) => (
+            <LogoCard key={item.name} item={item} inView={inView} delay={`${i * 0.06}s`} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} size={48} />
           ))}
         </div>
       </div>
-      <div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: GOLD, letterSpacing: "0.08em", marginBottom: 18 }}>NBFC</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
-          {NBFCS.map((b, i) => (
-            <div key={b.name} className={`hover-card ${inView ? "fade-in" : ""}`} style={{ ...styles.glassCard, padding: 20, textAlign: "center", animationDelay: `${i * 0.08}s` }}>
-              <img src={`https://logo.clearbit.com/${b.domain}`} alt={b.name} className="bank-logo" style={{ width: 56, height: 56, objectFit: "contain", margin: "0 auto 10px", display: "block" }} onError={e => { e.target.style.display = "none"; }} />
-              <div style={{ fontSize: 12, color: textSub, fontWeight: 600 }}>{b.name}</div>
-            </div>
+
+      {/* NBFCs */}
+      <div style={{ marginBottom: 44 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: GOLD, letterSpacing: "0.12em", background: `${GOLD}14`, border: `1px solid ${GOLD}33`, borderRadius: 20, padding: "4px 14px" }}>🏢 OUR NBFC NETWORK</div>
+          <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${GOLD}33, transparent)` }} />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }} className="partner-logo-grid-nbfc">
+          {NBFCS.map((item, i) => (
+            <LogoCard key={item.name} item={item} inView={inView} delay={`${i * 0.07}s`} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} size={52} />
           ))}
         </div>
+      </div>
+
+      {/* Insurance */}
+      <div style={{ marginBottom: 36 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: GOLD, letterSpacing: "0.12em", background: `${GOLD}14`, border: `1px solid ${GOLD}33`, borderRadius: 20, padding: "4px 14px" }}>🛡️ INSURANCE PROVIDERS</div>
+          <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${GOLD}33, transparent)` }} />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14 }} className="partner-logo-grid-ins">
+          {INSURERS.map((item, i) => (
+            <LogoCard key={item.name} item={item} inView={inView} delay={`${i * 0.08}s`} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} size={48} />
+          ))}
+        </div>
+      </div>
+
+      {/* Disclaimer */}
+      <div style={{ marginTop: 12, padding: "14px 20px", background: darkMode ? "rgba(255,255,255,0.03)" : "rgba(10,15,30,0.04)", border: `1px solid ${cardBorder}`, borderRadius: 12, textAlign: "center" }}>
+        <p style={{ fontSize: 11, color: textSub, lineHeight: 1.7, margin: 0 }}>
+          <span style={{ marginRight: 6 }}>ℹ️</span>
+          Logos belong to their respective owners. One Point Finance Hub acts as a loan and insurance advisory platform connecting customers with partner lenders and insurers.
+        </p>
       </div>
     </section>
   );
@@ -1639,13 +1777,12 @@ function CrossSellBanner({ activeLoan, GOLD, darkMode, scrollTo }) {
 // INSURANCE SECTION
 // ═══════════════════════════════════════════════════════════════════════════════
 const INSURANCE_PROVIDERS = [
-  { name: "HDFC Life", domain: "hdfclife.com", color: "#E8192C", glow: "rgba(232,25,44,0.2)" },
-  { name: "ICICI Prudential", domain: "iciciprulife.com", color: "#F58220", glow: "rgba(245,130,32,0.2)" },
-  { name: "Tata AIA", domain: "tataaia.com", color: "#00539B", glow: "rgba(0,83,155,0.2)" },
-  { name: "Max Life", domain: "maxlifeinsurance.com", color: "#E31837", glow: "rgba(227,24,55,0.2)" },
-  { name: "SBI Life", domain: "sbilife.co.in", color: "#2D6DB5", glow: "rgba(45,109,181,0.2)" },
-  { name: "Star Health", domain: "starhealth.in", color: "#E8192C", glow: "rgba(232,25,44,0.2)" },
-  { name: "Niva Bupa", domain: "nivabupa.com", color: "#00A651", glow: "rgba(0,166,81,0.2)" },
+  { name: "LIC", logo: "/logos/lic.webp", color: "#1a5276", glow: "rgba(26,82,118,0.2)" },
+  { name: "HDFC Life", logo: "/logos/hdfclife.png", color: "#004C8F", glow: "rgba(0,76,143,0.2)" },
+  { name: "ICICI Prudential", logo: "/logos/icicipru.jpg", color: "#F05A28", glow: "rgba(240,90,40,0.2)" },
+  { name: "SBI Life", logo: "/logos/sbilife.png", color: "#2D6DB5", glow: "rgba(45,109,181,0.2)" },
+  { name: "Tata AIA", logo: "/logos/tataaia.png", color: "#003580", glow: "rgba(0,53,128,0.2)" },
+  { name: "Max Life", logo: "/logos/maxlife.webp", color: "#E31837", glow: "rgba(227,24,55,0.2)" },
 ];
 
 function InsuranceSection({ id, styles, darkMode, textSub, GOLD, cardBorder, activeInsurance, setActiveInsurance, insuranceForm, setInsuranceForm, insuranceSubmitted, setInsuranceSubmitted, showToast, scrollTo }) {
@@ -1833,7 +1970,7 @@ function InsuranceSection({ id, styles, darkMode, textSub, GOLD, cardBorder, act
               onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = `0 4px 20px ${p.glow}, inset 0 1px 0 rgba(255,255,255,0.1)`; e.currentTarget.style.borderColor = `${p.color}44`; }}>
               <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, transparent, ${p.color}99, transparent)`, borderRadius: "16px 16px 0 0" }} />
               <div style={{ width: 44, height: 44, borderRadius: 12, background: `${p.color}12`, border: `1px solid ${p.color}30`, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-                <img src={`https://logo.clearbit.com/${p.domain}`} alt={p.name} width={32} height={32} style={{ objectFit: "contain" }} onError={e => { e.target.style.display = "none"; }} />
+                <img src={p.logo} alt={p.name} width={32} height={32} style={{ objectFit: "contain" }} onError={e => { e.target.style.display = "none"; e.target.parentElement.innerHTML = `<span style="font-size:10px;font-weight:800;color:${p.color}">${p.name.split(" ").map(w=>w[0]).join("").slice(0,4)}</span>`; }} />
               </div>
               <span style={{ fontSize: 10, fontWeight: 700, color: darkMode ? "#E2E8F0" : "#1E293B", textAlign: "center", lineHeight: 1.4 }}>{p.name}</span>
               <div style={{ width: 20, height: 2, background: `linear-gradient(90deg, transparent, ${p.color}, transparent)`, borderRadius: 2 }} />
