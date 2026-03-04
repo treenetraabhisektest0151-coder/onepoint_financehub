@@ -185,7 +185,7 @@ export default function App() {
   };
 
   return (
-    <div style={styles.app}>
+    <div style={styles.app} className={darkMode ? "dark-mode" : "light-mode"}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -218,8 +218,12 @@ export default function App() {
         .bank-logo:hover { filter: none !important; transform: scale(1.08); }
         .bank-logo { filter: grayscale(100%) opacity(0.6); transition: all 0.3s; }
         input:focus, select:focus, textarea:focus { border-color: ${GOLD}88 !important; outline: none !important; box-shadow: 0 0 0 2px ${GOLD}22 !important; }
-        select { background-color: #0f172a !important; color: #F0F4FF !important; -webkit-appearance: none; appearance: none; }
-        select option { background-color: #0f172a !important; color: #F0F4FF !important; }
+        select { -webkit-appearance: none; appearance: none; }
+        .dark-mode select { background-color: #0f172a !important; color: #F0F4FF !important; }
+        .dark-mode 
+        .light-mode select { background-color: #ffffff !important; color: #0A0F1E !important; }
+        .light-mode select option { background-color: #ffffff !important; color: #0A0F1E !important; }
+        
         .wa-float { position: fixed; bottom: 96px; right: 20px; z-index: 1000; animation: pulseGreen 2s infinite; }
         .section-reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s, transform 0.8s; }
         .section-reveal.visible { opacity: 1; transform: translateY(0); }
@@ -742,12 +746,12 @@ function LoanSection({ id, styles, darkMode, textSub, GOLD, cardBorder, activeLo
   const [ref, inView] = useInView(0.1);
   const docs = LOAN_DOCS[activeLoan];
 
-  // Dark select style — overrides browser default white background
+  // Select style — respects darkMode
   const selectStyle = {
     ...styles.input,
     cursor: "pointer",
-    backgroundColor: "#0f172a",
-    color: "#F0F4FF",
+    backgroundColor: darkMode ? "#0f172a" : "#ffffff",
+    color: darkMode ? "#F0F4FF" : "#0A0F1E",
     WebkitAppearance: "none",
     MozAppearance: "none",
     appearance: "none",
@@ -1437,9 +1441,58 @@ function MarqueeLogoCard({ item, darkMode, textSub, GOLD, cardBorder, size = 52 
 // ── MARQUEE ROW ─────────────────────────────────────────────────────────────────
 function MarqueeRow({ items, speed = 35, reverse = false, darkMode, textSub, GOLD, cardBorder, size = 52, label, badge }) {
   const [paused, setPaused] = useState(false);
-  // duplicate for seamless loop
-  const doubled = [...items, ...items];
+  const trackRef = useRef(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+  const dragMoved = useRef(false);
+  const resumeTimer = useRef(null);
+
+  const doubled = [...items, ...items, ...items];
   const duration = `${items.length * speed}s`;
+
+  // ── Touch handlers (mobile swipe) ──
+  const onTouchStart = (e) => {
+    isDragging.current = true;
+    dragMoved.current = false;
+    startX.current = e.touches[0].clientX;
+    scrollLeft.current = trackRef.current ? trackRef.current.scrollLeft : 0;
+    setPaused(true);
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+  };
+  const onTouchMove = (e) => {
+    if (!isDragging.current || !trackRef.current) return;
+    const dx = startX.current - e.touches[0].clientX;
+    if (Math.abs(dx) > 5) dragMoved.current = true;
+    trackRef.current.scrollLeft = scrollLeft.current + dx;
+  };
+  const onTouchEnd = () => {
+    isDragging.current = false;
+    resumeTimer.current = setTimeout(() => setPaused(false), 1800);
+  };
+
+  // ── Mouse drag handlers (desktop) ──
+  const onMouseDown = (e) => {
+    isDragging.current = true;
+    dragMoved.current = false;
+    startX.current = e.clientX;
+    scrollLeft.current = trackRef.current ? trackRef.current.scrollLeft : 0;
+    setPaused(true);
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+    if (trackRef.current) trackRef.current.style.cursor = "grabbing";
+  };
+  const onMouseMove = (e) => {
+    if (!isDragging.current || !trackRef.current) return;
+    const dx = startX.current - e.clientX;
+    if (Math.abs(dx) > 5) dragMoved.current = true;
+    trackRef.current.scrollLeft = scrollLeft.current + dx;
+  };
+  const onMouseUp = () => {
+    isDragging.current = false;
+    if (trackRef.current) trackRef.current.style.cursor = "grab";
+    resumeTimer.current = setTimeout(() => setPaused(false), 1800);
+  };
+
   return (
     <div style={{ marginBottom: 44 }}>
       {/* Row label */}
@@ -1447,26 +1500,44 @@ function MarqueeRow({ items, speed = 35, reverse = false, darkMode, textSub, GOL
         <div style={{ fontSize: 12, fontWeight: 800, color: GOLD, letterSpacing: "0.12em", background: `${GOLD}14`, border: `1px solid ${GOLD}33`, borderRadius: 20, padding: "4px 14px", whiteSpace: "nowrap" }}>{badge}</div>
         <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${GOLD}33, transparent)` }} />
       </div>
+
       {/* Scroll track */}
-      <div
-        style={{ overflow: "hidden", position: "relative" }}
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
-      >
+      <div style={{ position: "relative" }}>
         {/* Fade edges */}
-        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 60, zIndex: 2, background: darkMode ? "linear-gradient(90deg, #0A0F1E, transparent)" : "linear-gradient(90deg, #F0F4FF, transparent)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 60, zIndex: 2, background: darkMode ? "linear-gradient(270deg, #0A0F1E, transparent)" : "linear-gradient(270deg, #F0F4FF, transparent)", pointerEvents: "none" }} />
-        <div style={{
-          display: "flex",
-          gap: 14,
-          width: "max-content",
-          animation: `${reverse ? "marqueeRTL" : "marqueeLTR"} ${duration} linear infinite`,
-          animationPlayState: paused ? "paused" : "running",
-          willChange: "transform",
-        }}>
-          {doubled.map((item, i) => (
-            <MarqueeLogoCard key={`${item.name}-${i}`} item={item} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} size={size} />
-          ))}
+        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 48, zIndex: 2, background: darkMode ? "linear-gradient(90deg, #0A0F1E, transparent)" : "linear-gradient(90deg, #F0F4FF, transparent)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 48, zIndex: 2, background: darkMode ? "linear-gradient(270deg, #0A0F1E, transparent)" : "linear-gradient(270deg, #F0F4FF, transparent)", pointerEvents: "none" }} />
+
+        {/* Swipeable + auto-scroll container */}
+        <div
+          ref={trackRef}
+          onMouseEnter={() => { if (!isDragging.current) setPaused(true); }}
+          onMouseLeave={() => { if (!isDragging.current) { setPaused(false); if (trackRef.current) trackRef.current.style.cursor = "grab"; } onMouseUp(); }}
+          onMouseDown={onMouseDown}
+          onMouseMove={onMouseMove}
+          onMouseUp={onMouseUp}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          style={{
+            overflow: "hidden",
+            cursor: "grab",
+            userSelect: "none",
+            WebkitOverflowScrolling: "touch",
+          }}
+        >
+          <div style={{
+            display: "flex",
+            gap: 14,
+            width: "max-content",
+            animation: `${reverse ? "marqueeRTL" : "marqueeLTR"} ${duration} linear infinite`,
+            animationPlayState: paused ? "paused" : "running",
+            willChange: "transform",
+            pointerEvents: "none",
+          }}>
+            {doubled.map((item, i) => (
+              <MarqueeLogoCard key={`${item.name}-${i}`} item={item} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} size={size} />
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -1754,7 +1825,7 @@ function SubDSASection({ id, styles, darkMode, textSub, GOLD, cardBorder, subDsa
                 ))}
                 <div>
                   <label style={styles.label}>Experience in Loan Sales</label>
-                  <select style={{ ...styles.input, cursor: "pointer", backgroundColor: "#0f172a", color: "#F0F4FF" }} value={subDsaForm.experience} onChange={e => setSubDsaForm({ ...subDsaForm, experience: e.target.value })}>
+                  <select style={{ ...styles.input, cursor: "pointer", backgroundColor: darkMode ? "#0f172a" : "#ffffff", color: darkMode ? "#F0F4FF" : "#0A0F1E" }} value={subDsaForm.experience} onChange={e => setSubDsaForm({ ...subDsaForm, experience: e.target.value })}>
                     <option value="">Select experience</option>
                     <option>Fresher (0-1 year)</option>
                     <option>1-3 years</option>
@@ -1764,7 +1835,7 @@ function SubDSASection({ id, styles, darkMode, textSub, GOLD, cardBorder, subDsa
                 </div>
                 <div>
                   <label style={styles.label}>Current Monthly Leads</label>
-                  <select style={{ ...styles.input, cursor: "pointer", backgroundColor: "#0f172a", color: "#F0F4FF" }} value={subDsaForm.leads} onChange={e => setSubDsaForm({ ...subDsaForm, leads: e.target.value })}>
+                  <select style={{ ...styles.input, cursor: "pointer", backgroundColor: darkMode ? "#0f172a" : "#ffffff", color: darkMode ? "#F0F4FF" : "#0A0F1E" }} value={subDsaForm.leads} onChange={e => setSubDsaForm({ ...subDsaForm, leads: e.target.value })}>
                     <option value="">Select range</option>
                     <option>1-5 leads/month</option>
                     <option>5-15 leads/month</option>
@@ -2149,7 +2220,7 @@ function InsuranceSection({ id, styles, darkMode, textSub, GOLD, cardBorder, act
             <div><label style={styles.label}>Full Name *</label><input style={styles.input} value={insuranceForm.name} onChange={e => setInsuranceForm({ ...insuranceForm, name: e.target.value })} placeholder="Your full name" /></div>
             <div><label style={styles.label}>Mobile Number *</label><input style={styles.input} value={insuranceForm.mobile} onChange={e => setInsuranceForm({ ...insuranceForm, mobile: e.target.value })} placeholder="10-digit number" maxLength={10} /></div>
             <div><label style={styles.label}>City</label><input style={styles.input} value={insuranceForm.city} onChange={e => setInsuranceForm({ ...insuranceForm, city: e.target.value })} placeholder="Bhubaneswar" /></div>
-            <div><label style={styles.label}>Insurance Type</label><select style={{ ...styles.input, cursor: "pointer", backgroundColor: "#0f172a", color: "#F0F4FF" }} value={insuranceForm.insuranceType} onChange={e => setInsuranceForm({ ...insuranceForm, insuranceType: e.target.value })}><option value="health">Health Insurance</option><option value="term">Term Life Insurance</option><option value="motor">Motor Insurance</option><option value="business">Business Insurance</option></select></div>
+            <div><label style={styles.label}>Insurance Type</label><select style={{ ...styles.input, cursor: "pointer", backgroundColor: darkMode ? "#0f172a" : "#ffffff", color: darkMode ? "#F0F4FF" : "#0A0F1E" }} value={insuranceForm.insuranceType} onChange={e => setInsuranceForm({ ...insuranceForm, insuranceType: e.target.value })}><option value="health">Health Insurance</option><option value="term">Term Life Insurance</option><option value="motor">Motor Insurance</option><option value="business">Business Insurance</option></select></div>
             <div><label style={styles.label}>Age</label><input style={styles.input} value={insuranceForm.age} onChange={e => setInsuranceForm({ ...insuranceForm, age: e.target.value })} placeholder="e.g. 32" type="number" min={18} max={80} /></div>
             <div><label style={styles.label}>Sum Assured Required</label><input style={styles.input} value={insuranceForm.sumAssured} onChange={e => setInsuranceForm({ ...insuranceForm, sumAssured: e.target.value })} placeholder="e.g. ₹50 Lakh" /></div>
             <div style={{ gridColumn: "1/-1" }}>
@@ -2215,7 +2286,7 @@ function Footer({ styles, darkMode, textSub, GOLD, cardBorder, scrollTo }) {
               <div style={{ fontWeight: 800, color: "#CBD5E1", marginBottom: 18, fontSize: 13, letterSpacing: "0.04em" }}>{section.toUpperCase()}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
                 {items.map(item => (
-                  <a key={item} href="#" style={{ color: "#64748B", textDecoration: "none", fontSize: 13, transition: "color 0.2s" }} onMouseEnter={e => e.target.style.color = GOLD} onMouseLeave={e => e.target.style.color = "#64748B"}>{item}</a>
+                  <a key={item} href="#" style={{ color: "#64748B", textDecoration: "none", fontSize: 13, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = GOLD} onMouseLeave={e => e.currentTarget.style.color = "#64748B"}>{item}</a>
                 ))}
               </div>
             </div>
@@ -2241,9 +2312,9 @@ function Footer({ styles, darkMode, textSub, GOLD, cardBorder, scrollTo }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 0", borderTop: "1px solid rgba(255,255,255,0.06)", flexWrap: "wrap", gap: 12, marginBottom: 0 }}>
           <div style={{ fontSize: 12, color: "#475569" }}>© {new Date().getFullYear()} One Point Finance Hub. All rights reserved. · Advisory Partner: <strong style={{ color: "#64748B" }}>Bright Worth Advisors Private Limited</strong></div>
           <div style={{ display: "flex", gap: 16, fontSize: 12, flexWrap: "wrap" }}>
-            <a href="#" style={{ color: "#475569", textDecoration: "none" }} onMouseEnter={e => e.target.style.color = GOLD} onMouseLeave={e => e.target.style.color = "#475569"}>Privacy Policy</a>
-            <a href="#" style={{ color: "#475569", textDecoration: "none" }} onMouseEnter={e => e.target.style.color = GOLD} onMouseLeave={e => e.target.style.color = "#475569"}>Terms</a>
-            <a href="#" style={{ color: "#475569", textDecoration: "none" }} onMouseEnter={e => e.target.style.color = GOLD} onMouseLeave={e => e.target.style.color = "#475569"}>Disclaimer</a>
+            <a href="#" style={{ color: "#475569", textDecoration: "none" }} onMouseEnter={e => e.currentTarget.style.color = GOLD} onMouseLeave={e => e.currentTarget.style.color = "#475569"}>Privacy Policy</a>
+            <a href="#" style={{ color: "#475569", textDecoration: "none" }} onMouseEnter={e => e.currentTarget.style.color = GOLD} onMouseLeave={e => e.currentTarget.style.color = "#475569"}>Terms</a>
+            <a href="#" style={{ color: "#475569", textDecoration: "none" }} onMouseEnter={e => e.currentTarget.style.color = GOLD} onMouseLeave={e => e.currentTarget.style.color = "#475569"}>Disclaimer</a>
           </div>
         </div>
         <div style={{ height: 72 }} className="mobile-sticky-bar" />
