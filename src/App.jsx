@@ -532,7 +532,7 @@ function HeroSection({ styles, scrollTo, darkMode, textSub, GOLD }) {
           <div className={inView ? "fade-in" : ""}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: `${GOLD}14`, border: `1px solid ${GOLD}44`, borderRadius: 24, padding: "6px 16px", marginBottom: 22, animation: inView ? "slideInLeft 0.6s ease forwards" : "none" }}>
               <span style={{ fontSize: 14 }}>🏆</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: GOLD, letterSpacing: "0.05em" }}>Odisha's Trusted Loan Advisory Platform · Pan India</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: GOLD, letterSpacing: "0.05em" }}>India's Trusted Loan Advisory Platform · Pan India</span>
             </div>
             <h1 style={{ fontSize: "clamp(28px, 4.5vw, 58px)", fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.03em", marginBottom: 14 }}>
               Fast Loan Approvals<br />
@@ -1583,7 +1583,7 @@ function SEOSection({ styles, darkMode, textSub, GOLD, cardBorder }) {
   const cApproval = useCounter(94, 1600, cardInView);
   const odishaCities = ["Bhubaneswar", "Cuttack", "Puri", "Rourkela", "Sambalpur", "Berhampur", "Balasore", "Brahmapur"];
   const odishaServices = [
-    { icon: "👤", label: "Personal Loan", detail: "₹50K – ₹40L · From 10.5% p.a." },
+    { icon: "👤", label: "Personal Loan", detail: "₹50K – ₹40L · From 9.99% p.a." },
     { icon: "🏢", label: "Business Loan", detail: "₹1L – ₹5Cr · Collateral-free" },
     { icon: "🏠", label: "Home Loan", detail: "₹5L – ₹5Cr · Low EMI" },
   ];
