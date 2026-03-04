@@ -1,11 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { fetchLeads, fetchAgents, updateLeadStatus, assignAgent } from "../api/googleScript";
 
-const SEED_AGENTS = [
-  { id:"AGT-001", name:"Amit Kumar", mobile:"9111111111", email:"amit@opfh.com", role:"Senior Agent", active:true },
-  { id:"AGT-002", name:"Neha Singh", mobile:"9222222222", email:"neha@opfh.com", role:"Agent", active:true },
-  { id:"AGT-003", name:"Vikram Rao", mobile:"9333333333", email:"vikram@opfh.com", role:"Agent", active:false },
-];
+const SEED_AGENTS = [];
+ 
 
 export default function useLeads() {
   const [leads, setLeads] = useState([]);
