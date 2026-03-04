@@ -1,24 +1,22 @@
-// src/hooks/useLeads.js
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { fetchLeads, fetchAgents, updateLeadStatus, assignAgent } from "../api/googleScript";
 
 const SEED_AGENTS = [
-  { id:"AGT-001", name:"Amit Kumar", mobile:"9111111111", email:"amit@opfh.com",   role:"Senior Agent", active:true  },
-  { id:"AGT-002", name:"Neha Singh", mobile:"9222222222", email:"neha@opfh.com",   role:"Agent",        active:true  },
-  { id:"AGT-003", name:"Vikram Rao", mobile:"9333333333", email:"vikram@opfh.com", role:"Agent",        active:false },
+  { id:"AGT-001", name:"Amit Kumar", mobile:"9111111111", email:"amit@opfh.com", role:"Senior Agent", active:true },
+  { id:"AGT-002", name:"Neha Singh", mobile:"9222222222", email:"neha@opfh.com", role:"Agent", active:true },
+  { id:"AGT-003", name:"Vikram Rao", mobile:"9333333333", email:"vikram@opfh.com", role:"Agent", active:false },
 ];
 
 export default function useLeads() {
-  const [leads,      setLeads]      = useState([]);
-  const [agents,     setAgents]     = useState(SEED_AGENTS);
-  const [loading,    setLoading]    = useState(true);
-  const [error,      setError]      = useState(null);
+  const [leads, setLeads] = useState([]);
+  const [agents, setAgents] = useState(SEED_AGENTS);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [usingCache, setUsingCache] = useState(false);
-
-  const [search,  setSearch]  = useState("");
+  const [search, setSearch] = useState("");
   const [statusF, setStatusF] = useState("All");
-  const [typeF,   setTypeF]   = useState("All");
-  const [dateF,   setDateF]   = useState("");
+  const [typeF, setTypeF] = useState("All");
+  const [dateF, setDateF] = useState("");
 
   const loadLeads = useCallback(async () => {
     setLoading(true);
@@ -87,9 +85,9 @@ export default function useLeads() {
     const q = search.toLowerCase();
     return leads.filter(l => {
       const matchSearch = !search || [l.fullName, l.mobile, l.city, l.id].join(" ").toLowerCase().includes(q);
-      const matchStatus = statusF === "All" || l.status   === statusF;
-      const matchType   = typeF   === "All" || l.loanType === typeF;
-      const matchDate   = !dateF  || (l.timestamp || "").includes(dateF);
+      const matchStatus = statusF === "All" || l.status === statusF;
+      const matchType   = typeF === "All" || l.loanType === typeF;
+      const matchDate   = !dateF || (l.timestamp || "").includes(dateF);
       return matchSearch && matchStatus && matchType && matchDate;
     });
   }, [leads, search, statusF, typeF, dateF]);
@@ -123,11 +121,9 @@ export default function useLeads() {
       }
     });
     const leadsPerDay = Object.entries(days).map(([date, count]) => ({ date, count }));
-
     const typeCount = {};
     leads.forEach(l => { const t = l.loanType || "Other"; typeCount[t] = (typeCount[t] || 0) + 1; });
     const pieData = Object.entries(typeCount).map(([name, value]) => ({ name, value }));
-
     return { leadsPerDay, pieData };
   }, [leads]);
 
@@ -136,8 +132,8 @@ export default function useLeads() {
     loading, error, usingCache,
     search, setSearch,
     statusF, setStatusF,
-    typeF,   setTypeF,
-    dateF,   setDateF,
+    typeF, setTypeF,
+    dateF, setDateF,
     changeStatus, changeAgent, addLocalAgent, loadLeads,
   };
 }
