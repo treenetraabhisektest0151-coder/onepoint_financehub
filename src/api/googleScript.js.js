@@ -13,21 +13,31 @@
 // Apps Script reads it via: JSON.parse(e.postData.contents)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SCRIPT_URL =
-  typeof import.meta !== "undefined" && import.meta.env?.VITE_GOOGLE_SCRIPT_URL
-    ? import.meta.env.VITE_GOOGLE_SCRIPT_URL
-    : "https://script.google.com/macros/s/AKfycbyjwCYGp0GZ_AVO__UUgqsBFgifrHZpHJPcVAkZcRDHvxzW70ARl_zLAOfmZ20a9bYi/exec";
+// Priority: 1) Runtime override (Settings page) → 2) .env → 3) hardcoded fallback
+const ENV_URL   = (typeof import.meta !== "undefined" && import.meta.env?.VITE_GOOGLE_SCRIPT_URL) || "";
+const FALLBACK  = "https://script.google.com/macros/s/AKfycbwenEBqhaESqQF926jsCIhZV9g1bmVqpTxw1OK9lEgA9XAA1jAJWBp5GPYQm5Cj1HBq/exec";
+
+function getScriptUrl() {
+  return localStorage.getItem("opfh_script_url") || ENV_URL || FALLBACK;
+}
 
 const ADMIN_TOKEN =
-  typeof import.meta !== "undefined" && import.meta.env?.VITE_ADMIN_TOKEN
-    ? import.meta.env.VITE_ADMIN_TOKEN
-    : "onepointcrm2026secret";
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_ADMIN_TOKEN) || "onepointcrm2026secret";
+
+// Called by Settings page when user updates the URL
+export function saveScriptUrl(url) {
+  localStorage.setItem("opfh_script_url", url.trim());
+}
+
+export function getSavedScriptUrl() {
+  return getScriptUrl();
+}
 
 // ── Internal base functions ──────────────────────────────────────────────────
 
 async function gasPost(payload) {
   try {
-    await fetch(SCRIPT_URL, {
+    await fetch(getScriptUrl(), {
       method:  "POST",
       mode:    "no-cors",          // required for Google Apps Script
       headers: { "Content-Type": "text/plain" }, // avoids CORS preflight
@@ -42,7 +52,7 @@ async function gasPost(payload) {
 
 async function gasGet(params = {}) {
   try {
-    const url = new URL(SCRIPT_URL);
+    const url = new URL(getScriptUrl());
     url.searchParams.set("token", ADMIN_TOKEN);
     Object.entries(params).forEach(([k, v]) => {
       if (v != null) url.searchParams.set(k, v);

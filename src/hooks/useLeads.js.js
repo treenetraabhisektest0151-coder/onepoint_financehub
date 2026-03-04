@@ -9,7 +9,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { fetchLeads, updateLeadStatus, assignAgent } from "../api/googleScript";
+import { fetchLeads, fetchAgents, updateLeadStatus, assignAgent } from "../api/googleScript";
 
 // Seed data — shown while Google Sheet loads (or if CORS blocks GET)
 // Replace with real API call once Apps Script doGet is deployed
@@ -33,10 +33,11 @@ const SEED_AGENTS = [
 ];
 
 export default function useLeads() {
-  const [leads,   setLeads]   = useState(SEED);
-  const [agents,  setAgents]  = useState(SEED_AGENTS);
-  const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState(null);
+  const [leads,      setLeads]      = useState([]);
+  const [agents,     setAgents]     = useState(SEED_AGENTS);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState(null);
+  const [usingCache, setUsingCache] = useState(false);
 
   // Filter state
   const [search,  setSearch]  = useState("");
@@ -48,12 +49,31 @@ export default function useLeads() {
   const loadLeads = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setUsingCache(false);
     try {
-      const data = await fetchLeads();
-      if (data?.leads?.length) setLeads(data.leads);
-    } catch {
-      // Non-fatal: SEED data stays visible. Common when GET has CORS issues.
-      setError("Live sync unavailable — showing cached data.");
+      // Load leads and agents in parallel
+      const [leadsData, agentsData] = await Promise.allSettled([
+        fetchLeads(),
+        fetchAgents(),
+      ]);
+
+      // Handle leads
+      if (leadsData.status === "fulfilled" && leadsData.value?.leads?.length) {
+        setLeads(leadsData.value.leads);
+      } else {
+        setLeads(SEED);
+        setUsingCache(true);
+        setError("Live data unavailable — showing demo data. Check your Google Apps Script URL in Settings.");
+      }
+
+      // Handle agents
+      if (agentsData.status === "fulfilled" && agentsData.value?.agents?.length) {
+        setAgents(agentsData.value.agents);
+      }
+    } catch (err) {
+      setLeads(SEED);
+      setUsingCache(true);
+      setError("Connection failed — showing demo data. Check your Google Apps Script URL in Settings.");
     } finally {
       setLoading(false);
     }
@@ -134,7 +154,7 @@ export default function useLeads() {
 
   return {
     leads, filtered, agents, kpis, chartData,
-    loading, error,
+    loading, error, usingCache,
     search, setSearch,
     statusF, setStatusF,
     typeF,   setTypeF,

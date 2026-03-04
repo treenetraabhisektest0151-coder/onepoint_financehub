@@ -1,7 +1,22 @@
 import { useState, useEffect, useRef } from "react";
 
 // ─── GOOGLE APPS SCRIPT ENDPOINT ────────────────────────────────────────────
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyjwCYGp0GZ_AVO__UUgqsBFgifrHZpHJPcVAkZcRDHvxzW70ARl_zLAOfmZ20a9bYi/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwenEBqhaESqQF926jsCIhZV9g1bmVqpTxw1OK9lEgA9XAA1jAJWBp5GPYQm5Cj1HBq/exec";
+
+async function sendToCRM(payload) {
+  try {
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify(payload),
+    });
+    return true;
+  } catch (err) {
+    console.error("CRM submission error:", err);
+    return false;
+  }
+}
 
 // ─── THEME & GLOBALS ────────────────────────────────────────────────────────
 const GOLD = "#C9A84C";
@@ -108,7 +123,7 @@ function calcSIP(monthly, rate, years) {
   return { fv: fv.toFixed(0), invested: (monthly * n).toFixed(0), returns: (fv - monthly * n).toFixed(0) };
 }
 
-const WA_NUMBER = "919876543210";
+const WA_NUMBER = "919937133335";
 function waLink(msg) { return `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`; }
 function fmt(n) { return Number(n).toLocaleString("en-IN"); }
 
@@ -220,10 +235,9 @@ export default function App() {
         input:focus, select:focus, textarea:focus { border-color: ${GOLD}88 !important; outline: none !important; box-shadow: 0 0 0 2px ${GOLD}22 !important; }
         select { -webkit-appearance: none; appearance: none; }
         .dark-mode select { background-color: #0f172a !important; color: #F0F4FF !important; }
-        .dark-mode 
+        .dark-mode select option { background-color: #0f172a !important; color: #F0F4FF !important; }
         .light-mode select { background-color: #ffffff !important; color: #0A0F1E !important; }
         .light-mode select option { background-color: #ffffff !important; color: #0A0F1E !important; }
-        
         .wa-float { position: fixed; bottom: 96px; right: 20px; z-index: 1000; animation: pulseGreen 2s infinite; }
         .section-reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s, transform 0.8s; }
         .section-reveal.visible { opacity: 1; transform: translateY(0); }
@@ -539,7 +553,7 @@ function HeroSection({ styles, scrollTo, darkMode, textSub, GOLD }) {
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 32 }} className="hero-btns">
               <button style={{ ...styles.goldBtn, padding: "14px 28px", fontSize: 15, borderRadius: 12, boxShadow: `0 6px 28px ${GOLD}55` }} className="gold-hover" onClick={() => scrollTo("loans")}>🚀 Apply Now</button>
               <button style={{ ...styles.goldBtn, background: "transparent", color: GOLD, border: `1.5px solid ${GOLD}66`, boxShadow: "none", padding: "14px 24px", fontSize: 15, borderRadius: 12 }} onClick={() => scrollTo("cibil")}>✅ Check Eligibility</button>
-              <a href={`https://wa.me/919876543210?text=${encodeURIComponent("Hi! I want to apply for a loan.")}`} target="_blank" rel="noreferrer" style={{ ...styles.goldBtn, background: "linear-gradient(135deg,#25D366,#128C7E)", textDecoration: "none", padding: "14px 24px", fontSize: 15, borderRadius: 12, boxShadow: "0 6px 24px rgba(37,211,102,0.35)" }}>💬 WhatsApp Now</a>
+              <a href={`https://wa.me/919937133335?text=${encodeURIComponent("Hi! I want to apply for a loan.")}`} target="_blank" rel="noreferrer" style={{ ...styles.goldBtn, background: "linear-gradient(135deg,#25D366,#128C7E)", textDecoration: "none", padding: "14px 24px", fontSize: 15, borderRadius: 12, boxShadow: "0 6px 24px rgba(37,211,102,0.35)" }}>💬 WhatsApp Now</a>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {trustBadges.map((b, i) => (
@@ -676,7 +690,7 @@ function HowItWorksSection({ styles, darkMode, textSub, GOLD, cardBorder }) {
         </div>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }} className="hiw-cta-btns">
           <button style={{ ...styles.goldBtn, padding: "12px 28px" }} className="gold-hover" onClick={() => { const el = document.getElementById("loans"); if (el) el.scrollIntoView({ behavior: "smooth" }); }}>Apply Now →</button>
-          <a href="https://wa.me/919876543210?text=Hi!%20I%20want%20to%20apply%20for%20a%20loan." target="_blank" rel="noreferrer" style={{ ...styles.goldBtn, background: "linear-gradient(135deg,#25D366,#128C7E)", textDecoration: "none", padding: "12px 24px" }}>💬 WhatsApp Us</a>
+          <a href="https://wa.me/919937133335?text=Hi!%20I%20want%20to%20apply%20for%20a%20loan." target="_blank" rel="noreferrer" style={{ ...styles.goldBtn, background: "linear-gradient(135deg,#25D366,#128C7E)", textDecoration: "none", padding: "12px 24px" }}>💬 WhatsApp Us</a>
         </div>
       </div>
     </section>
@@ -731,7 +745,7 @@ function WhyChooseSection({ styles, darkMode, textSub, GOLD, cardBorder }) {
           </div>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }} className="why-cta-btns">
             <button style={{ ...styles.goldBtn, padding: "12px 28px" }} className="gold-hover" onClick={() => { const el = document.getElementById("loans"); if (el) el.scrollIntoView({ behavior: "smooth" }); }}>Apply Now →</button>
-            <a href="https://wa.me/919876543210?text=Hi!%20I%20want%20to%20apply%20for%20a%20loan." target="_blank" rel="noreferrer" style={{ ...styles.goldBtn, background: "linear-gradient(135deg,#25D366,#128C7E)", textDecoration: "none", padding: "12px 24px" }}>💬 WhatsApp Us</a>
+            <a href="https://wa.me/919937133335?text=Hi!%20I%20want%20to%20apply%20for%20a%20loan." target="_blank" rel="noreferrer" style={{ ...styles.goldBtn, background: "linear-gradient(135deg,#25D366,#128C7E)", textDecoration: "none", padding: "12px 24px" }}>💬 WhatsApp Us</a>
           </div>
         </div>
       </div>
@@ -746,7 +760,6 @@ function LoanSection({ id, styles, darkMode, textSub, GOLD, cardBorder, activeLo
   const [ref, inView] = useInView(0.1);
   const docs = LOAN_DOCS[activeLoan];
 
-  // Select style — respects darkMode
   const selectStyle = {
     ...styles.input,
     cursor: "pointer",
@@ -795,16 +808,7 @@ function LoanSection({ id, styles, darkMode, textSub, GOLD, cardBorder, activeLo
       leadSource: "Website", leadStatus: "New", assignedAgent: "", followUpDate: "",
       notes: `Loan: ${activeLoan}, Amount: ${leadForm.amount}`,
     };
-    try {
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify(crmPayload),
-      });
-    } catch (err) {
-      console.error("Loan form submission error:", err);
-    }
+    await sendToCRM(crmPayload);
     showToast("Application submitted! Our team will contact you shortly.");
     setSubmitted(true);
   };
@@ -833,7 +837,7 @@ function LoanSection({ id, styles, darkMode, textSub, GOLD, cardBorder, activeLo
               <div style={{ fontSize: 60, marginBottom: 20 }}>🎉</div>
               <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 12 }}>Application Submitted!</div>
               <div style={{ color: textSub, marginBottom: 24 }}>Our team will contact you within 2 hours.</div>
-              <a href={`https://wa.me/919876543210?text=${encodeURIComponent(`Hi! I just applied for a ${activeLoan} loan through One Point Finance Hub. My name is ${leadForm.name}.`)}`} target="_blank" rel="noreferrer" style={{ ...styles.goldBtn, textDecoration: "none", background: "linear-gradient(135deg,#25D366,#128C7E)" }}>Track on WhatsApp</a>
+              <a href={`https://wa.me/919937133335?text=${encodeURIComponent(`Hi! I just applied for a ${activeLoan} loan through One Point Finance Hub. My name is ${leadForm.name}.`)}`} target="_blank" rel="noreferrer" style={{ ...styles.goldBtn, textDecoration: "none", background: "linear-gradient(135deg,#25D366,#128C7E)" }}>Track on WhatsApp</a>
             </div>
           ) : (
             <div>
@@ -982,7 +986,7 @@ function LoanSection({ id, styles, darkMode, textSub, GOLD, cardBorder, activeLo
               </div>
               <button style={{ ...styles.goldBtn, width: "100%", padding: "14px", fontSize: 16, marginTop: 8 }} className="gold-hover" onClick={handleSubmit}>Submit Application →</button>
               <div style={{ textAlign: "center", marginTop: 12 }}>
-                <a href={`https://wa.me/919876543210?text=${encodeURIComponent(`Hi! I need a ${activeLoan} loan. Can you help?`)}`} target="_blank" rel="noreferrer" style={{ color: "#25D366", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>💬 Or apply via WhatsApp</a>
+                <a href={`https://wa.me/919937133335?text=${encodeURIComponent(`Hi! I need a ${activeLoan} loan. Can you help?`)}`} target="_blank" rel="noreferrer" style={{ color: "#25D366", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>💬 Or apply via WhatsApp</a>
               </div>
             </div>
           )}
@@ -1203,16 +1207,7 @@ function TaxSection({ id, styles, darkMode, textSub, GOLD, cardBorder, showToast
       leadStatus: "New",
       notes: `Service: ${current.title} | Message: ${form.message}`,
     };
-    try {
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify(crmPayload),
-      });
-    } catch (err) {
-      console.error("Tax enquiry submission error:", err);
-    }
+    await sendToCRM(crmPayload);
     showToast("Enquiry submitted! Our tax expert will contact you soon.");
     setForm({ name: "", mobile: "", email: "", message: "" });
   };
@@ -1287,16 +1282,7 @@ function MFSection({ id, styles, darkMode, textSub, GOLD, cardBorder, sipForm, s
       leadStatus: "New",
       notes: `Monthly SIP: ${form.amount} | Risk Profile: ${riskProfile}`,
     };
-    try {
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify(crmPayload),
-      });
-    } catch (err) {
-      console.error("MF enquiry submission error:", err);
-    }
+    await sendToCRM(crmPayload);
     showToast("Investment enquiry submitted! We'll connect you with a certified advisor.");
     setForm({ name: "", mobile: "", amount: "" });
   };
@@ -1441,58 +1427,9 @@ function MarqueeLogoCard({ item, darkMode, textSub, GOLD, cardBorder, size = 52 
 // ── MARQUEE ROW ─────────────────────────────────────────────────────────────────
 function MarqueeRow({ items, speed = 35, reverse = false, darkMode, textSub, GOLD, cardBorder, size = 52, label, badge }) {
   const [paused, setPaused] = useState(false);
-  const trackRef = useRef(null);
-  const isDragging = useRef(false);
-  const startX = useRef(0);
-  const scrollLeft = useRef(0);
-  const dragMoved = useRef(false);
-  const resumeTimer = useRef(null);
-
-  const doubled = [...items, ...items, ...items];
+  // duplicate for seamless loop
+  const doubled = [...items, ...items];
   const duration = `${items.length * speed}s`;
-
-  // ── Touch handlers (mobile swipe) ──
-  const onTouchStart = (e) => {
-    isDragging.current = true;
-    dragMoved.current = false;
-    startX.current = e.touches[0].clientX;
-    scrollLeft.current = trackRef.current ? trackRef.current.scrollLeft : 0;
-    setPaused(true);
-    if (resumeTimer.current) clearTimeout(resumeTimer.current);
-  };
-  const onTouchMove = (e) => {
-    if (!isDragging.current || !trackRef.current) return;
-    const dx = startX.current - e.touches[0].clientX;
-    if (Math.abs(dx) > 5) dragMoved.current = true;
-    trackRef.current.scrollLeft = scrollLeft.current + dx;
-  };
-  const onTouchEnd = () => {
-    isDragging.current = false;
-    resumeTimer.current = setTimeout(() => setPaused(false), 1800);
-  };
-
-  // ── Mouse drag handlers (desktop) ──
-  const onMouseDown = (e) => {
-    isDragging.current = true;
-    dragMoved.current = false;
-    startX.current = e.clientX;
-    scrollLeft.current = trackRef.current ? trackRef.current.scrollLeft : 0;
-    setPaused(true);
-    if (resumeTimer.current) clearTimeout(resumeTimer.current);
-    if (trackRef.current) trackRef.current.style.cursor = "grabbing";
-  };
-  const onMouseMove = (e) => {
-    if (!isDragging.current || !trackRef.current) return;
-    const dx = startX.current - e.clientX;
-    if (Math.abs(dx) > 5) dragMoved.current = true;
-    trackRef.current.scrollLeft = scrollLeft.current + dx;
-  };
-  const onMouseUp = () => {
-    isDragging.current = false;
-    if (trackRef.current) trackRef.current.style.cursor = "grab";
-    resumeTimer.current = setTimeout(() => setPaused(false), 1800);
-  };
-
   return (
     <div style={{ marginBottom: 44 }}>
       {/* Row label */}
@@ -1500,44 +1437,26 @@ function MarqueeRow({ items, speed = 35, reverse = false, darkMode, textSub, GOL
         <div style={{ fontSize: 12, fontWeight: 800, color: GOLD, letterSpacing: "0.12em", background: `${GOLD}14`, border: `1px solid ${GOLD}33`, borderRadius: 20, padding: "4px 14px", whiteSpace: "nowrap" }}>{badge}</div>
         <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${GOLD}33, transparent)` }} />
       </div>
-
       {/* Scroll track */}
-      <div style={{ position: "relative" }}>
+      <div
+        style={{ overflow: "hidden", position: "relative" }}
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+      >
         {/* Fade edges */}
-        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 48, zIndex: 2, background: darkMode ? "linear-gradient(90deg, #0A0F1E, transparent)" : "linear-gradient(90deg, #F0F4FF, transparent)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 48, zIndex: 2, background: darkMode ? "linear-gradient(270deg, #0A0F1E, transparent)" : "linear-gradient(270deg, #F0F4FF, transparent)", pointerEvents: "none" }} />
-
-        {/* Swipeable + auto-scroll container */}
-        <div
-          ref={trackRef}
-          onMouseEnter={() => { if (!isDragging.current) setPaused(true); }}
-          onMouseLeave={() => { if (!isDragging.current) { setPaused(false); if (trackRef.current) trackRef.current.style.cursor = "grab"; } onMouseUp(); }}
-          onMouseDown={onMouseDown}
-          onMouseMove={onMouseMove}
-          onMouseUp={onMouseUp}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-          style={{
-            overflow: "hidden",
-            cursor: "grab",
-            userSelect: "none",
-            WebkitOverflowScrolling: "touch",
-          }}
-        >
-          <div style={{
-            display: "flex",
-            gap: 14,
-            width: "max-content",
-            animation: `${reverse ? "marqueeRTL" : "marqueeLTR"} ${duration} linear infinite`,
-            animationPlayState: paused ? "paused" : "running",
-            willChange: "transform",
-            pointerEvents: "none",
-          }}>
-            {doubled.map((item, i) => (
-              <MarqueeLogoCard key={`${item.name}-${i}`} item={item} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} size={size} />
-            ))}
-          </div>
+        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 60, zIndex: 2, background: darkMode ? "linear-gradient(90deg, #0A0F1E, transparent)" : "linear-gradient(90deg, #F0F4FF, transparent)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 60, zIndex: 2, background: darkMode ? "linear-gradient(270deg, #0A0F1E, transparent)" : "linear-gradient(270deg, #F0F4FF, transparent)", pointerEvents: "none" }} />
+        <div style={{
+          display: "flex",
+          gap: 14,
+          width: "max-content",
+          animation: `${reverse ? "marqueeRTL" : "marqueeLTR"} ${duration} linear infinite`,
+          animationPlayState: paused ? "paused" : "running",
+          willChange: "transform",
+        }}>
+          {doubled.map((item, i) => (
+            <MarqueeLogoCard key={`${item.name}-${i}`} item={item} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} size={size} />
+          ))}
         </div>
       </div>
     </div>
@@ -1761,7 +1680,7 @@ function SEOSection({ styles, darkMode, textSub, GOLD, cardBorder }) {
           <span style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "8px 16px", borderRadius: 50, background: `${GOLD}14`, border: `1px solid ${GOLD}44`, fontSize: 13, fontWeight: 700, color: GOLD }}>🗺️ All 28 States &amp; 8 UTs</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", borderRadius: 14, flexWrap: "wrap", gap: 12, background: darkMode ? "rgba(255,255,255,0.025)" : "rgba(10,15,30,0.03)", border: `1px solid ${darkMode ? "rgba(255,255,255,0.06)" : "rgba(10,15,30,0.07)"}` }}>
-          <span style={{ fontSize: 13, color: textSub }}>Don't see your city?{" "}<a href="https://wa.me/919876543210?text=Hi! I need a loan in my city." target="_blank" rel="noreferrer" style={{ color: "#25D366", fontWeight: 700, textDecoration: "none" }}>WhatsApp us — we serve you anyway.</a></span>
+          <span style={{ fontSize: 13, color: textSub }}>Don't see your city?{" "}<a href="https://wa.me/919937133335?text=Hi! I need a loan in my city." target="_blank" rel="noreferrer" style={{ color: "#25D366", fontWeight: 700, textDecoration: "none" }}>WhatsApp us — we serve you anyway.</a></span>
           <div style={{ display: "flex", gap: 16, fontSize: 12, color: textSub }}>
             {["Personal Loan", "Business Loan", "Home Loan"].map(l => (
               <span key={l} style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 5, height: 5, background: GOLD, borderRadius: "50%", display: "inline-block", opacity: 0.7 }} />{l}</span>
@@ -1778,7 +1697,13 @@ function SEOSection({ styles, darkMode, textSub, GOLD, cardBorder }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 function SubDSASection({ id, styles, darkMode, textSub, GOLD, cardBorder, subDsaForm, setSubDsaForm, showToast }) {
   const [submitted, setSubmitted] = useState(false);
-  const handleSubmit = () => { if (!subDsaForm.name || !subDsaForm.mobile || !subDsaForm.email) { showToast("Please fill all required fields", "error"); return; } showToast("Partnership application submitted! We'll contact you within 24 hours."); setSubmitted(true); };
+  const handleSubmit = async () => {
+    if (!subDsaForm.name || !subDsaForm.mobile || !subDsaForm.email) { showToast("Please fill all required fields", "error"); return; }
+    const crmPayload = { timestamp: new Date().toISOString(), fullName: subDsaForm.name, mobile: subDsaForm.mobile, email: subDsaForm.email, city: subDsaForm.city || "", experience: subDsaForm.experience || "", monthlyLeads: subDsaForm.leads || "", existingTieups: subDsaForm.tieups || "", productType: "Partner", leadSource: "Website", leadStatus: "New", notes: `Experience: ${subDsaForm.experience} | Leads/mo: ${subDsaForm.leads}` };
+    await sendToCRM(crmPayload);
+    showToast("Partnership application submitted! We'll contact you within 24 hours.");
+    setSubmitted(true);
+  };
   const benefits = ["Competitive commission structure", "Access to 12+ lending partners", "Training & onboarding support", "Dedicated relationship manager", "Marketing collateral provided", "Real-time lead tracking portal"];
   return (
     <section id={id} style={{ ...styles.section, background: darkMode ? "rgba(201,168,76,0.04)" : "rgba(201,168,76,0.06)" }} className="section-margin section-pad">
@@ -1863,9 +1788,9 @@ function SubDSASection({ id, styles, darkMode, textSub, GOLD, cardBorder, subDsa
 function ContactWidget({ GOLD }) {
   const [open, setOpen] = useState(false);
   const actions = [
-    { icon: "📞", label: "Call Us", sub: "+91 98765 43210", href: "tel:+919876543210", bg: "linear-gradient(135deg,#3B82F6,#1D4ED8)", shadow: "rgba(59,130,246,0.45)" },
-    { icon: "💬", label: "WhatsApp", sub: "Chat instantly", href: "https://wa.me/919876543210?text=Hi! I need financial assistance.", bg: "linear-gradient(135deg,#25D366,#128C7E)", shadow: "rgba(37,211,102,0.45)" },
-    { icon: "✉️", label: "Email Us", sub: "info@onepointfinancehub.com", href: "mailto:info@onepointfinancehub.com", bg: "linear-gradient(135deg,#F59E0B,#D97706)", shadow: "rgba(245,158,11,0.45)" },
+    { icon: "📞", label: "Call Us", sub: "+91 99371 33335", href: "tel:+919937133335", bg: "linear-gradient(135deg,#3B82F6,#1D4ED8)", shadow: "rgba(59,130,246,0.45)" },
+    { icon: "💬", label: "WhatsApp", sub: "Chat instantly", href: "https://wa.me/919937133335?text=Hi! I need financial assistance.", bg: "linear-gradient(135deg,#25D366,#128C7E)", shadow: "rgba(37,211,102,0.45)" },
+    { icon: "✉️", label: "Email Us", sub: "onepointfinancehub@gmail.com", href: "mailto:onepointfinancehub@gmail.com", bg: "linear-gradient(135deg,#F59E0B,#D97706)", shadow: "rgba(245,158,11,0.45)" },
   ];
   return (
     <div style={{ position: "fixed", bottom: 28, right: 24, zIndex: 1000, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 12 }}>
@@ -1988,7 +1913,7 @@ function StickyMobileCTA({ GOLD, scrollTo }) {
   return (
     <div className="sticky-mobile-cta" style={{ display: "none", position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 998, background: "rgba(10,15,30,0.95)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(201,168,76,0.25)", padding: "10px 16px", gap: 10, transform: visible ? "translateY(0)" : "translateY(100%)", transition: "transform 0.35s cubic-bezier(.4,0,.2,1)" }}>
       <button onClick={() => scrollTo("loans")} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px", background: `linear-gradient(135deg, ${GOLD}, #B8862A)`, border: "none", borderRadius: 12, fontWeight: 800, fontSize: 14, color: "#0A0F1E", cursor: "pointer", fontFamily: "inherit", boxShadow: `0 4px 18px ${GOLD}44` }}>🚀 Apply Now</button>
-      <a href="https://wa.me/919876543210?text=Hi!%20I%20need%20a%20loan." target="_blank" rel="noreferrer" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px", background: "linear-gradient(135deg,#25D366,#128C7E)", borderRadius: 12, textDecoration: "none", fontWeight: 800, fontSize: 14, color: "#fff", boxShadow: "0 4px 18px rgba(37,211,102,0.35)" }}>💬 WhatsApp Us</a>
+      <a href="https://wa.me/919937133335?text=Hi!%20I%20need%20a%20loan." target="_blank" rel="noreferrer" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px", background: "linear-gradient(135deg,#25D366,#128C7E)", borderRadius: 12, textDecoration: "none", fontWeight: 800, fontSize: 14, color: "#fff", boxShadow: "0 4px 18px rgba(37,211,102,0.35)" }}>💬 WhatsApp Us</a>
     </div>
   );
 }
@@ -2101,16 +2026,7 @@ function InsuranceSection({ id, styles, darkMode, textSub, GOLD, cardBorder, act
   const handleInsSubmit = async () => {
     if (!insuranceForm.name || !insuranceForm.mobile) { showToast("Please fill required fields", "error"); return; }
     const crmPayload = { timestamp: new Date().toISOString(), fullName: insuranceForm.name, mobile: insuranceForm.mobile, city: insuranceForm.city, productType: "Insurance", loanType: insuranceForm.insuranceType, monthlyIncome: "", employmentType: "", leadSource: "Website", leadStatus: "New", assignedAgent: "", followUpDate: "", notes: `Age: ${insuranceForm.age}, Sum Assured: ${insuranceForm.sumAssured}, Existing Policy: ${insuranceForm.existingPolicy}` };
-    try {
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify(crmPayload),
-      });
-    } catch (err) {
-      console.error("Insurance form submission error:", err);
-    }
+    await sendToCRM(crmPayload);
     showToast("Enquiry submitted! Our advisor will contact you shortly.");
     setInsuranceSubmitted(true);
   };
@@ -2122,7 +2038,7 @@ function InsuranceSection({ id, styles, darkMode, textSub, GOLD, cardBorder, act
         <p style={{ color: textSub, fontSize: 16, maxWidth: 540, margin: "0 auto 28px" }}>Compare insurance options from leading providers with expert advisory support.</p>
         <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
           <button onClick={() => document.getElementById("ins-form").scrollIntoView({ behavior: "smooth" })} style={{ ...styles.goldBtn, padding: "13px 28px", fontSize: 15, borderRadius: 12 }}>🎯 Get Free Quote</button>
-          <a href="https://wa.me/919876543210?text=Hi!%20I%20need%20insurance%20advisory%20services." target="_blank" rel="noreferrer" style={{ ...styles.goldBtn, background: "linear-gradient(135deg,#25D366,#128C7E)", textDecoration: "none", padding: "13px 28px", fontSize: 15, borderRadius: 12 }}>💬 Talk to Advisor</a>
+          <a href="https://wa.me/919937133335?text=Hi!%20I%20need%20insurance%20advisory%20services." target="_blank" rel="noreferrer" style={{ ...styles.goldBtn, background: "linear-gradient(135deg,#25D366,#128C7E)", textDecoration: "none", padding: "13px 28px", fontSize: 15, borderRadius: 12 }}>💬 Talk to Advisor</a>
         </div>
       </div>
       <div style={{ display: "grid", gap: 20, marginBottom: 48 }} className="ins-cat-grid">
@@ -2213,7 +2129,7 @@ function InsuranceSection({ id, styles, darkMode, textSub, GOLD, cardBorder, act
             <div style={{ fontSize: 56, marginBottom: 16 }}>🎉</div>
             <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 10 }}>Enquiry Received!</div>
             <div style={{ color: textSub, marginBottom: 20 }}>Our insurance advisor will contact you within 2 hours.</div>
-            <a href="https://wa.me/919876543210?text=Hi!%20I%20submitted%20an%20insurance%20enquiry." target="_blank" rel="noreferrer" style={{ ...styles.goldBtn, textDecoration: "none", background: "linear-gradient(135deg,#25D366,#128C7E)" }}>Track on WhatsApp</a>
+            <a href="https://wa.me/919937133335?text=Hi!%20I%20submitted%20an%20insurance%20enquiry." target="_blank" rel="noreferrer" style={{ ...styles.goldBtn, textDecoration: "none", background: "linear-gradient(135deg,#25D366,#128C7E)" }}>Track on WhatsApp</a>
           </div>
         ) : (
           <div style={{ display: "grid", gap: 18 }} className="ins-form-grid">
@@ -2233,7 +2149,7 @@ function InsuranceSection({ id, styles, darkMode, textSub, GOLD, cardBorder, act
             </div>
             <div style={{ gridColumn: "1/-1" }}>
               <button style={{ ...styles.goldBtn, width: "100%", padding: "15px", fontSize: 16, borderRadius: 12 }} className="gold-hover" onClick={handleInsSubmit}>🎯 Submit Enquiry & Get Quote →</button>
-              <div style={{ textAlign: "center", marginTop: 10 }}><a href="https://wa.me/919876543210?text=Hi!%20I%20need%20insurance%20advisory." target="_blank" rel="noreferrer" style={{ color: "#25D366", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>💬 Or enquire via WhatsApp</a></div>
+              <div style={{ textAlign: "center", marginTop: 10 }}><a href="https://wa.me/919937133335?text=Hi!%20I%20need%20insurance%20advisory." target="_blank" rel="noreferrer" style={{ color: "#25D366", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>💬 Or enquire via WhatsApp</a></div>
             </div>
           </div>
         )}
@@ -2265,7 +2181,7 @@ function Footer({ styles, darkMode, textSub, GOLD, cardBorder, scrollTo }) {
             </div>
             <p style={{ fontSize: 13, lineHeight: 1.8, marginBottom: 20, maxWidth: 300, color: "#64748B" }}>Connecting India with the best loan products. Headquartered in Bhubaneswar, Odisha. 500+ loans facilitated. 1,200+ satisfied customers.</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 20 }}>
-              {[["📍", "123, Saheed Nagar, Bhubaneswar, Odisha – 751007"], ["📞", "+91 98765 43210"], ["✉️", "info@onepointfinancehub.com"], ["🌐", "www.onepointfinancehub.com"]].map(([icon, val]) => (
+              {[["📍", "123, Saheed Nagar, Bhubaneswar, Odisha – 751007"], ["📞", "+91 99371 33335"], ["✉️", "onepointfinancehub@gmail.com"], ["🌐", "www.onepointfinancehub.com"]].map(([icon, val]) => (
                 <div key={val} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12, color: "#64748B" }}>
                   <span style={{ flexShrink: 0, marginTop: 1 }}>{icon}</span><span>{val}</span>
                 </div>
@@ -2320,7 +2236,7 @@ function Footer({ styles, darkMode, textSub, GOLD, cardBorder, scrollTo }) {
         <div style={{ height: 72 }} className="mobile-sticky-bar" />
       </div>
       <div className="mobile-sticky-bar" style={{ display: "none", position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 997, background: "#060C1A", borderTop: "1px solid rgba(201,168,76,0.25)", padding: "10px 16px", gap: 10, backdropFilter: "blur(20px)" }}>
-        <a href="https://wa.me/919876543210?text=Hi!%20I%20need%20a%20loan." target="_blank" rel="noreferrer" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px", background: "linear-gradient(135deg,#25D366,#128C7E)", borderRadius: 12, textDecoration: "none", fontWeight: 800, fontSize: 14, color: "#fff", boxShadow: "0 4px 18px rgba(37,211,102,0.35)" }}>💬 WhatsApp Us</a>
+        <a href="https://wa.me/919937133335?text=Hi!%20I%20need%20a%20loan." target="_blank" rel="noreferrer" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px", background: "linear-gradient(135deg,#25D366,#128C7E)", borderRadius: 12, textDecoration: "none", fontWeight: 800, fontSize: 14, color: "#fff", boxShadow: "0 4px 18px rgba(37,211,102,0.35)" }}>💬 WhatsApp Us</a>
         <button onClick={() => { const el = document.getElementById("loans"); if (el) el.scrollIntoView({ behavior: "smooth" }); }} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px", background: `linear-gradient(135deg, ${GOLD}, #B8862A)`, border: "none", borderRadius: 12, fontWeight: 800, fontSize: 14, color: "#0A0F1E", cursor: "pointer", fontFamily: "inherit", boxShadow: `0 4px 18px ${GOLD}44` }}>🚀 Apply Now</button>
       </div>
     </footer>

@@ -11,7 +11,7 @@ import LeadsTable    from "../components/admin/LeadsTable";
 import ChartsSection from "../components/admin/ChartsSection";
 import StatusBadge   from "../components/admin/StatusBadge";
 import useLeads      from "../hooks/useLeads";
-import { addAgent }  from "../api/googleScript";
+import { addAgent, saveScriptUrl, getSavedScriptUrl } from "../api/googleScript";
 import { THEME, STATUS_MAP, LOAN_TYPES } from "../utils/constants";
 import { formatCurrency, formatMobile, getInitials } from "../utils/formatters";
 
@@ -207,45 +207,83 @@ function AnalyticsPage({ leads, kpis }) {
 
 // ── Page: Settings ─────────────────────────────────────────────────────────────
 function SettingsPage() {
-  const [url, setUrl] = useState("https://script.google.com/macros/s/AKfycby.../exec");
-  const [pwd, setPwd] = useState("");
-  const [saved, setSaved] = useState(false);
+  const [url,    setUrl]    = useState(getSavedScriptUrl);
+  const [pwd,    setPwd]    = useState("");
+  const [saved,  setSaved]  = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState(null);
 
-  const save = () => { setSaved(true); setTimeout(()=>setSaved(false), 2000); };
-  const inp  = { width:"100%", padding:"13px 16px", background:"rgba(255,255,255,0.05)", border:`1px solid ${THEME.borderSub}`, borderRadius:12, color:THEME.textPrimary, fontSize:13, fontFamily:"inherit", boxSizing:"border-box" };
+  const inp = { width:"100%", padding:"13px 16px", background:"rgba(255,255,255,0.05)", border:`1px solid ${THEME.borderSub}`, borderRadius:12, color:THEME.textPrimary, fontSize:13, fontFamily:"inherit", boxSizing:"border-box" };
+
+  const save = () => {
+    saveScriptUrl(url);
+    setSaved(true);
+    setTestResult(null);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  const testConnection = async () => {
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.status === "ok") {
+        setTestResult({ ok:true, msg:"✓ Connected! Apps Script is live." });
+      } else {
+        setTestResult({ ok:false, msg:"⚠ Got response but unexpected format: " + JSON.stringify(data) });
+      }
+    } catch(e) {
+      setTestResult({ ok:false, msg:"✕ Connection failed: " + e.message + ". Make sure you deployed as 'Anyone' access." });
+    }
+    setTesting(false);
+  };
 
   return (
     <div style={{ maxWidth:640 }}>
-      {[
-        { title:"Google Apps Script URL", desc:"Your deployed web app endpoint. Update after redeploying.", val:url, setter:setUrl },
-        { title:"Admin Password", desc:"Change the admin login password. Use .env in production.", val:pwd, setter:setPwd, placeholder:"New password…", type:"password" },
-      ].map(s => (
-        <div key={s.title} style={{ background:"rgba(255,255,255,0.02)", border:`1px solid ${THEME.borderSub}`, borderRadius:16, padding:24, marginBottom:20 }}>
-          <div style={{ fontSize:15, fontWeight:800, color:THEME.textPrimary, marginBottom:4 }}>{s.title}</div>
-          <div style={{ fontSize:13, color:THEME.textMuted, marginBottom:14 }}>{s.desc}</div>
-          <input type={s.type||"text"} value={s.val} onChange={e=>s.setter(e.target.value)} placeholder={s.placeholder} style={inp} />
-        </div>
-      ))}
-
+      {/* Script URL */}
       <div style={{ background:"rgba(255,255,255,0.02)", border:`1px solid ${THEME.borderSub}`, borderRadius:16, padding:24, marginBottom:20 }}>
-        <div style={{ fontSize:15, fontWeight:800, color:THEME.textPrimary, marginBottom:16 }}>Architecture Notes</div>
+        <div style={{ fontSize:15, fontWeight:800, color:THEME.textPrimary, marginBottom:4 }}>Google Apps Script URL</div>
+        <div style={{ fontSize:13, color:THEME.textMuted, marginBottom:14 }}>Your deployed web app endpoint. Update after redeploying. Changes save to localStorage instantly.</div>
+        <input type="text" value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://script.google.com/macros/s/..." style={inp} />
+        {testResult && (
+          <div style={{ marginTop:10, padding:"10px 14px", background:testResult.ok?"rgba(34,197,94,0.1)":"rgba(239,68,68,0.1)", border:`1px solid ${testResult.ok?"rgba(34,197,94,0.3)":"rgba(239,68,68,0.3)"}`, borderRadius:10, fontSize:13, color:testResult.ok?"#22C55E":"#EF4444" }}>
+            {testResult.msg}
+          </div>
+        )}
+        <div style={{ display:"flex", gap:12, marginTop:14 }}>
+          <button onClick={testConnection} disabled={testing} style={{ padding:"10px 20px", background:"rgba(59,130,246,0.15)", border:"1px solid rgba(59,130,246,0.3)", borderRadius:10, color:"#3B82F6", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>
+            {testing ? "Testing…" : "🔌 Test Connection"}
+          </button>
+          <button onClick={save} style={{ padding:"10px 24px", background:`linear-gradient(135deg,${THEME.gold},${THEME.goldDim})`, border:"none", borderRadius:10, color:THEME.navy, fontWeight:800, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>
+            {saved ? "✓ Saved!" : "Save URL"}
+          </button>
+        </div>
+      </div>
+
+      {/* Password */}
+      <div style={{ background:"rgba(255,255,255,0.02)", border:`1px solid ${THEME.borderSub}`, borderRadius:16, padding:24, marginBottom:20 }}>
+        <div style={{ fontSize:15, fontWeight:800, color:THEME.textPrimary, marginBottom:4 }}>Admin Password</div>
+        <div style={{ fontSize:13, color:THEME.textMuted, marginBottom:14 }}>Current password: <code style={{ color:THEME.gold, background:`${THEME.gold}11`, padding:"2px 8px", borderRadius:6 }}>onepointadmin2026</code> — change in constants.js or move to .env</div>
+        <input type="password" value={pwd} onChange={e=>setPwd(e.target.value)} placeholder="New password (requires code change)…" style={inp} />
+      </div>
+
+      {/* Architecture notes */}
+      <div style={{ background:"rgba(255,255,255,0.02)", border:`1px solid ${THEME.borderSub}`, borderRadius:16, padding:24, marginBottom:20 }}>
+        <div style={{ fontSize:15, fontWeight:800, color:THEME.textPrimary, marginBottom:16 }}>Connection Status</div>
         {[
-          ["Current DB",     "Google Sheets via Apps Script"],
-          ["Auth",           "localStorage session (hardcoded)"],
-          ["Migration path", "Swap api/googleScript.js for REST/Supabase"],
-          ["Real-time",      "Add WebSocket in useLeads.js loadLeads()"],
-          ["Multi-lender",   "Use lendersAPI stubs in googleScript.js"],
+          ["Data Source",   "Google Sheets via Apps Script"],
+          ["Auth",          "localStorage session"],
+          ["Script URL",    url.length > 50 ? url.slice(0,50)+"…" : (url||"Not set ⚠")],
+          ["Token",         "onepointcrm2026secret"],
+          ["Email alerts",  "onepointfinancehub@gmail.com"],
         ].map(([k,v])=>(
           <div key={k} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:`1px solid rgba(255,255,255,0.04)`, fontSize:13 }}>
             <span style={{ color:THEME.textMuted, fontWeight:600 }}>{k}</span>
-            <span style={{ color:THEME.textSub }}>{v}</span>
+            <span style={{ color:THEME.textSub, maxWidth:320, textAlign:"right", wordBreak:"break-all" }}>{v}</span>
           </div>
         ))}
       </div>
-
-      <button onClick={save} style={{ padding:"13px 32px", background:`linear-gradient(135deg,${THEME.gold},${THEME.goldDim})`, border:"none", borderRadius:12, color:THEME.navy, fontWeight:800, fontSize:15, cursor:"pointer", fontFamily:"inherit" }}>
-        {saved ? "✓ Saved!" : "Save Settings"}
-      </button>
     </div>
   );
 }
@@ -267,12 +305,24 @@ export default function AdminDashboard({ onLogout }) {
     <AdminLayout
       page={page} setPage={setPage}
       loading={hook.loading}
+      liveData={!hook.usingCache}
       onRefresh={hook.loadLeads}
       onLogout={onLogout}
     >
       {hook.error && (
-        <div style={{ padding:"10px 16px", background:"rgba(245,158,11,0.1)", border:"1px solid rgba(245,158,11,0.25)", borderRadius:10, color:"#F59E0B", fontSize:13, marginBottom:20 }}>
-          ⚠ {hook.error}
+        <div style={{ padding:"12px 18px", background:"rgba(245,158,11,0.08)", border:"1px solid rgba(245,158,11,0.25)", borderRadius:12, color:"#F59E0B", fontSize:13, marginBottom:20, display:"flex", alignItems:"center", justifyContent:"space-between", gap:16 }}>
+          <span>⚠ {hook.error}</span>
+          <button
+            onClick={() => { hook.loadLeads(); }}
+            style={{ padding:"6px 14px", background:"rgba(245,158,11,0.15)", border:"1px solid rgba(245,158,11,0.3)", borderRadius:8, color:"#F59E0B", fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap" }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+      {hook.usingCache && !hook.error && (
+        <div style={{ padding:"8px 14px", background:"rgba(59,130,246,0.08)", border:"1px solid rgba(59,130,246,0.2)", borderRadius:10, color:"#3B82F6", fontSize:12, marginBottom:16 }}>
+          📡 Showing demo data — go to <strong>Settings</strong> and paste your Google Apps Script URL, then click Refresh.
         </div>
       )}
       {pages[page] || pages.dashboard}
