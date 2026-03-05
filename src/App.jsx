@@ -131,7 +131,10 @@ function fmt(n) { return Number(n).toLocaleString("en-IN"); }
 // MAIN APP
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function App() {
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(() => {
+    try { const saved = localStorage.getItem("opfh_dark"); return saved !== null ? saved === "true" : true; } catch { return true; }
+  });
+  useEffect(() => { try { localStorage.setItem("opfh_dark", darkMode); } catch {} }, [darkMode]);
   const [activeSection, setActiveSection] = useState("home");
   const [activeLoan, setActiveLoan] = useState("personal");
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -164,6 +167,7 @@ export default function App() {
     { id: "tax", label: "Taxation" },
     { id: "mf", label: "Mutual Funds" },
     { id: "insurance", label: "Insurance" },
+    { id: "eligibility", label: "Eligibility" },
     { id: "partners", label: "Partners" },
     { id: "subdsa", label: "Partner With Us" },
   ];
@@ -206,6 +210,11 @@ export default function App() {
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; overflow-x: hidden !important; }
         #root, #app { width: 100% !important; max-width: 100% !important; margin: 0 !important; overflow-x: hidden !important; }
+        /* iOS Safari: prevent zoom on input focus — CRITICAL */
+        @media (max-width: 768px) {
+          input, select, textarea { font-size: 16px !important; }
+          button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        }
         ::-webkit-scrollbar { width: 6px; } 
         ::-webkit-scrollbar-track { background: ${NAVY}; }
         ::-webkit-scrollbar-thumb { background: ${GOLD}66; border-radius: 3px; }
@@ -250,49 +259,66 @@ export default function App() {
           /* Prevent ANY horizontal overflow */
           section, div, nav, footer, header { max-width: 100vw !important; }
           
-          /* Nav - compress on tiny screens */
+          /* Logo image — smaller on tiny screens */
+          .nav-logo-img { height: 32px !important; }
+          
+          /* Nav — compress on tiny screens */
           .logo-subtitle { display: none !important; }
+          .nav-logo-text { font-size: 13px !important; }
           
-          /* Hero section - tighten up */
-          .hero-trust-badges { gap: 6px !important; }
-          .hero-trust-badge { padding: 5px 8px !important; font-size: 11px !important; }
+          /* Hero section — tighten up */
+          .hero-trust-badges { gap: 5px !important; flex-wrap: wrap !important; }
+          .hero-trust-badge { padding: 4px 8px !important; font-size: 11px !important; }
+          .hero-trust-badge span:last-child { white-space: normal !important; }
           
-          /* Loan type buttons - stack if needed */
-          .loan-type-btns { gap: 8px !important; }
-          .loan-type-btns button { padding: 10px 16px !important; font-size: 13px !important; }
+          /* Hero description — full width */
+          .hero-desc { max-width: 100% !important; font-size: 14px !important; }
           
-          /* Stats section - compact */
+          /* Hero headline — slightly smaller */
+          .hero-h1 { font-size: clamp(22px, 6.5vw, 32px) !important; line-height: 1.15 !important; }
+          
+          /* Loan type buttons — stack if needed */
+          .loan-type-btns { gap: 8px !important; flex-wrap: wrap !important; }
+          .loan-type-btns button { padding: 9px 14px !important; font-size: 12px !important; flex: 1 1 auto !important; min-width: 0 !important; }
+          
+          /* Stats section — compact */
           .stats-grid > div { padding: 8px 4px !important; }
           
-          /* Insurance category grid - tighter */
-          .ins-cat-grid > div { padding: 18px 12px !important; }
+          /* Insurance category grid — tighter */
+          .ins-cat-grid > div { padding: 16px 10px !important; }
           
-          /* How it works - full single col on tiny */
+          /* How it works — full single col on tiny */
           .hiw-grid { grid-template-columns: 1fr !important; }
-
-          /* EMI / CIBIL summary numbers */
-          .emi-summary-grid { grid-template-columns: 1fr 1fr 1fr !important; gap: 8px !important; }
-
+          
+          /* EMI summary — single column on tiny */
+          .emi-summary-grid { grid-template-columns: 1fr !important; gap: 8px !important; }
+          
           /* Footer compact */
           footer { padding: 40px 12px 0 !important; }
-
+          
           /* Section padding tighter */
           .section-pad { padding: 60px 12px 40px !important; }
           
-          /* SEO apply button - full width on tiny */
+          /* SEO apply button — full width on tiny */
           .seo-apply-btn { width: 100% !important; text-align: center; justify-content: center; }
           
-          /* Testimonial arrows - hide on tiny screens */
+          /* Testimonial arrows — hide on tiny screens */
           .testimonial-arrows { display: none !important; }
           
-          /* Cross sell banner - stack */
+          /* Cross sell banner — stack */
           .cross-sell-inner { flex-direction: column !important; }
           
           /* Partner marquee cards slightly smaller */
           .marquee-card { width: 110px !important; min-height: 90px !important; }
           
-          /* Strategic partner icon - smaller */
+          /* Strategic partner icon — smaller */
           .strategic-icon-box { width: 90px !important; height: 90px !important; }
+
+          /* Coverage breadcrumb — hide on tiny */
+          .coverage-row { display: none !important; }
+
+          /* Hero section — reduce top padding */
+          .hero-inner { padding-top: 80px !important; }
         }
 
         /* ── TABLET SPECIFIC ── */
@@ -325,6 +351,7 @@ export default function App() {
         .seo-track-item { flex: 1; min-width: 120px; }
         .subdsa-grid { grid-template-columns: 1fr !important; }
         .footer-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+        .elig-main-grid { grid-template-columns: 1fr !important; }
         .mobile-sticky-bar { display: flex !important; }
         .trust-grid { grid-template-columns: 1fr 1fr !important; }
         .sticky-mobile-cta { display: flex !important; }
@@ -471,6 +498,7 @@ export default function App() {
       <TaxSection id="tax" styles={styles} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} showToast={showToast} />
       <MFSection id="mf" styles={styles} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} sipForm={sipForm} setSipForm={setSipForm} sip={sip} showToast={showToast} />
       <InsuranceSection id="insurance" styles={styles} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} activeInsurance={activeInsurance} setActiveInsurance={setActiveInsurance} insuranceForm={insuranceForm} setInsuranceForm={setInsuranceForm} insuranceSubmitted={insuranceSubmitted} setInsuranceSubmitted={setInsuranceSubmitted} showToast={showToast} scrollTo={scrollTo} />
+      <EligibilitySection id="eligibility" styles={styles} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} scrollTo={scrollTo} showToast={showToast} />
       <BankSection id="partners" styles={styles} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} />
       <StrategicPartnerSection styles={styles} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} />
 
@@ -487,8 +515,12 @@ export default function App() {
 
       <SEOSection styles={styles} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} />
       <SubDSASection id="subdsa" styles={styles} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} subDsaForm={subDsaForm} setSubDsaForm={setSubDsaForm} showToast={showToast} />
+      <EligibilityChecker styles={styles} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} />
+      <BlogSection styles={styles} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} />
+      <FaqSection styles={styles} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} />
       <Footer styles={styles} darkMode={darkMode} textSub={textSub} GOLD={GOLD} cardBorder={cardBorder} scrollTo={scrollTo} />
       <ContactWidget GOLD={GOLD} />
+      <TawkToChat />
       <StickyMobileCTA GOLD={GOLD} scrollTo={scrollTo} />
 
       {toast && (
@@ -623,8 +655,8 @@ function HeroSection({ styles, scrollTo, darkMode, textSub, GOLD }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 function StatsSection({ styles, darkMode, textSub, GOLD, cardBorder }) {
   const [ref, inView] = useInView(0.3);
-  const loans = useCounter(500, 2000, inView);
-  const customers = useCounter(1200, 2200, inView);
+  const loans = useCounter(2500, 2000, inView);
+  const customers = useCounter(5000, 2200, inView);
   const approval = useCounter(94, 2000, inView);
   const cities = useCounter(28, 1800, inView);
   const stats = [
@@ -1463,6 +1495,284 @@ function MarqueeRow({ items, speed = 35, reverse = false, darkMode, textSub, GOL
   );
 }
 
+function EligibilitySection({ id, styles, darkMode, textSub, GOLD, cardBorder, scrollTo, showToast }) {
+  const [ref, inView] = useInView(0.1);
+  const NAVY = "#0A0F1E";
+  const [form, setForm] = useState({
+    employment: "salaried",
+    loanType: "personal",
+    income: "",
+    cibil: "",
+    loanAmount: "",
+    existingEmi: "",
+    tenure: "36",
+  });
+  const [result, setResult] = useState(null);
+  const [checking, setChecking] = useState(false);
+
+  const inputStyle = {
+    background: darkMode ? "rgba(255,255,255,0.07)" : "rgba(10,15,30,0.06)",
+    border: `1px solid ${darkMode ? "rgba(255,255,255,0.1)" : "rgba(10,15,30,0.12)"}`,
+    color: darkMode ? "#F0F4FF" : "#0A0F1E",
+    padding: "12px 14px", borderRadius: 10, fontSize: 14,
+    fontFamily: "inherit", outline: "none", width: "100%",
+    transition: "border-color 0.2s",
+  };
+  const labelStyle = { fontSize: 11, fontWeight: 700, color: textSub, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 5, display: "block" };
+
+  function calcResult() {
+    const income = parseFloat(form.income) || 0;
+    const cibil = parseFloat(form.cibil) || 0;
+    const loanAmt = parseFloat(form.loanAmount) || 0;
+    const existingEmi = parseFloat(form.existingEmi) || 0;
+    const tenure = parseFloat(form.tenure) || 36;
+    if (!income || !cibil || !loanAmt) return null;
+
+    // 1. CIBIL score factor
+    let cibilScore = 0, cibilLabel = "", cibilColor = "";
+    if (cibil >= 750) { cibilScore = 95; cibilLabel = "Excellent"; cibilColor = "#22c55e"; }
+    else if (cibil >= 700) { cibilScore = 80; cibilLabel = "Good"; cibilColor = "#86efac"; }
+    else if (cibil >= 650) { cibilScore = 60; cibilLabel = "Fair"; cibilColor = "#facc15"; }
+    else if (cibil >= 600) { cibilScore = 35; cibilLabel = "Poor"; cibilColor = "#f97316"; }
+    else { cibilScore = 10; cibilLabel = "Very Poor"; cibilColor = "#ef4444"; }
+
+    // 2. Estimate new EMI for entered amount
+    const rate = form.loanType === "home" ? 8.5 : form.loanType === "business" ? 14 : 12;
+    const r = rate / 12 / 100;
+    const newEmi = loanAmt * r * Math.pow(1 + r, tenure) / (Math.pow(1 + r, tenure) - 1);
+
+    // 3. FOIR
+    const foir = (existingEmi + newEmi) / income;
+    let foirScore = 0, foirLabel = "", foirColor = "";
+    if (foir <= 0.35) { foirScore = 100; foirLabel = "Excellent"; foirColor = "#22c55e"; }
+    else if (foir <= 0.45) { foirScore = 80; foirLabel = "Good"; foirColor = "#86efac"; }
+    else if (foir <= 0.55) { foirScore = 55; foirLabel = "Manageable"; foirColor = "#facc15"; }
+    else if (foir <= 0.65) { foirScore = 30; foirLabel = "Stretched"; foirColor = "#f97316"; }
+    else { foirScore = 0; foirLabel = "Too High"; foirColor = "#ef4444"; }
+
+    // 4. Loan-to-income multiplier
+    const maxMultiplier = form.loanType === "home" ? 60 : form.loanType === "business" ? 48 : 24;
+    const maxLoan = income * maxMultiplier;
+    const ltiRatio = Math.min(loanAmt / maxLoan, 1);
+    const ltiScore = Math.round((1 - ltiRatio) * 100);
+    const ltiLabel = ltiRatio <= 0.6 ? "Healthy" : ltiRatio <= 0.85 ? "Moderate" : "High";
+    const ltiColor = ltiRatio <= 0.6 ? "#22c55e" : ltiRatio <= 0.85 ? "#facc15" : "#ef4444";
+
+    // 5. Employment bonus
+    const empBonus = form.employment === "salaried" ? 5 : 0;
+
+    // 6. Overall approval probability (weighted)
+    const overall = Math.min(Math.round(cibilScore * 0.45 + foirScore * 0.30 + ltiScore * 0.25 + empBonus), 99);
+    let verdict = "", verdictColor = "";
+    if (overall >= 80) { verdict = "High Chance of Approval ✓"; verdictColor = "#22c55e"; }
+    else if (overall >= 60) { verdict = "Moderate Chance — Improve CIBIL"; verdictColor = "#facc15"; }
+    else if (overall >= 35) { verdict = "Low Chance — Consider Smaller Amount"; verdictColor = "#f97316"; }
+    else { verdict = "Unlikely — Work on CIBIL & Reduce Obligations"; verdictColor = "#ef4444"; }
+
+    // Best bank suggestions
+    const banks = form.loanType === "home"
+      ? [{ name: "SBI Home Loan", rate: "8.40%", note: "Best for salaried" }, { name: "HDFC Home Loan", rate: "8.50%", note: "Fast processing" }, { name: "LIC HFL", rate: "8.65%", note: "Good for low CIBIL" }]
+      : form.loanType === "business"
+      ? [{ name: "HDFC Business Loan", rate: "13.5%", note: "Best for turnover > 40L" }, { name: "ICICI iLoan", rate: "14.0%", note: "Instant approval" }, { name: "Bajaj Finserv", rate: "14.5%", note: "Flexible tenure" }]
+      : [{ name: "HDFC Personal Loan", rate: "10.5%", note: "Best rates for 750+" }, { name: "ICICI Personal Loan", rate: "10.75%", note: "24-hr disbursal" }, { name: "Axis Fastforward", rate: "11.0%", note: "Top-up available" }];
+
+    return {
+      overall, verdict, verdictColor,
+      newEmi: Math.round(newEmi),
+      maxLoan: Math.round(maxLoan),
+      bars: [
+        { label: "CIBIL Score", value: cibilScore, label2: `${cibilLabel} (${cibil})`, color: cibilColor },
+        { label: "FOIR (Obligations)", value: foirScore, label2: `${foirLabel} (${Math.round(foir * 100)}%)`, color: foirColor },
+        { label: "Loan-to-Income", value: ltiScore, label2: ltiLabel, color: ltiColor },
+      ],
+      banks,
+      tips: [
+        cibil < 750 && "Improve your CIBIL score by clearing dues — even 20–30 points can change your rate significantly.",
+        foir > 0.45 && "Your existing EMI burden is high. Prepay a small loan first to improve FOIR.",
+        loanAmt > maxLoan && `You're requesting more than our estimated maximum (₹${Math.round(maxLoan / 100000).toFixed(1)}L). Try a smaller amount or longer tenure.`,
+        form.employment === "self_employed" && "Self-employed applicants benefit from 2+ years of ITR filings. Ensure your ITR is filed on time.",
+      ].filter(Boolean),
+    };
+  }
+
+  function handleCheck() {
+    if (!form.income || !form.cibil || !form.loanAmount) {
+      showToast("Please fill Income, CIBIL Score & Loan Amount", "error"); return;
+    }
+    if (parseFloat(form.cibil) > 900 || parseFloat(form.cibil) < 300) {
+      showToast("CIBIL score must be between 300–900", "error"); return;
+    }
+    setChecking(true);
+    setTimeout(() => { setResult(calcResult()); setChecking(false); }, 900);
+  }
+
+  const bg2 = darkMode ? "#0D1530" : "#EEF2FF";
+  const cardBg = darkMode ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.85)";
+
+  return (
+    <section id={id} ref={ref} className={`section-reveal${inView ? " visible" : ""}`}
+      style={{ padding: "80px 16px 60px", background: darkMode ? "#0D1530" : "#F4F7FF" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        {/* Header */}
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: `${GOLD}15`, border: `1px solid ${GOLD}40`, borderRadius: 20, padding: "5px 16px", marginBottom: 14 }}>
+            <span style={{ fontSize: 12 }}>🎯</span>
+            <span style={{ fontSize: 11, fontWeight: 800, color: GOLD, letterSpacing: "0.1em" }}>FREE TOOL · NO CREDIT IMPACT</span>
+          </div>
+          <div style={{ ...styles.sectionTitle, marginBottom: 10 }}>
+            Loan <span style={{ color: GOLD }}>Eligibility Checker</span>
+          </div>
+          <div style={{ fontSize: 15, color: textSub, maxWidth: 500, margin: "0 auto" }}>
+            Find out your approval chances in 30 seconds — using the same logic banks use internally.
+          </div>
+        </div>
+
+        {/* Main Card */}
+        <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 28, padding: "40px 36px", boxShadow: darkMode ? "0 24px 80px rgba(0,0,0,0.4)" : "0 8px 40px rgba(10,15,30,0.08)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: result ? "1fr 1fr" : "1fr", gap: 48, transition: "all 0.4s" }} className="elig-main-grid">
+            {/* Form */}
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 16, color: darkMode ? "#F0F4FF" : "#0A0F1E", marginBottom: 24 }}>📋 Enter Your Details</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+                <div>
+                  <label style={labelStyle}>Employment Type</label>
+                  <select style={inputStyle} value={form.employment} onChange={e => setForm(f => ({ ...f, employment: e.target.value }))}>
+                    <option value="salaried">Salaried</option>
+                    <option value="self_employed">Self-Employed</option>
+                    <option value="business">Business Owner</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>Loan Type</label>
+                  <select style={inputStyle} value={form.loanType} onChange={e => setForm(f => ({ ...f, loanType: e.target.value }))}>
+                    <option value="personal">Personal Loan</option>
+                    <option value="business">Business Loan</option>
+                    <option value="home">Home Loan</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>Monthly Income (₹) *</label>
+                  <input style={inputStyle} type="number" placeholder="e.g. 50000" value={form.income}
+                    onChange={e => setForm(f => ({ ...f, income: e.target.value }))}
+                    onFocus={e => e.target.style.borderColor = GOLD} onBlur={e => e.target.style.borderColor = ""} />
+                </div>
+                <div>
+                  <label style={labelStyle}>CIBIL Score (300–900) *</label>
+                  <input style={inputStyle} type="number" placeholder="e.g. 720" value={form.cibil}
+                    onChange={e => setForm(f => ({ ...f, cibil: e.target.value }))}
+                    onFocus={e => e.target.style.borderColor = GOLD} onBlur={e => e.target.style.borderColor = ""} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Loan Amount (₹) *</label>
+                  <input style={inputStyle} type="number" placeholder="e.g. 500000" value={form.loanAmount}
+                    onChange={e => setForm(f => ({ ...f, loanAmount: e.target.value }))}
+                    onFocus={e => e.target.style.borderColor = GOLD} onBlur={e => e.target.style.borderColor = ""} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Existing EMIs / Month (₹)</label>
+                  <input style={inputStyle} type="number" placeholder="0 if none" value={form.existingEmi}
+                    onChange={e => setForm(f => ({ ...f, existingEmi: e.target.value }))}
+                    onFocus={e => e.target.style.borderColor = GOLD} onBlur={e => e.target.style.borderColor = ""} />
+                </div>
+              </div>
+              <div style={{ marginBottom: 20 }}>
+                <label style={labelStyle}>Desired Tenure</label>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  {(form.loanType === "home" ? ["120","180","240","300"] : ["12","24","36","48","60"]).map(t => (
+                    <button key={t} onClick={() => setForm(f => ({ ...f, tenure: t }))}
+                      style={{ padding: "8px 18px", borderRadius: 8, border: `1px solid ${form.tenure === t ? GOLD : "rgba(255,255,255,0.12)"}`,
+                        background: form.tenure === t ? `${GOLD}20` : "transparent", color: form.tenure === t ? GOLD : textSub,
+                        fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s" }}>
+                      {t} mo
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <button onClick={handleCheck} disabled={checking}
+                style={{ width: "100%", padding: "16px", background: checking ? "rgba(201,168,76,0.4)" : `linear-gradient(135deg, ${GOLD}, #B8862A)`,
+                  border: "none", borderRadius: 12, fontSize: 16, fontWeight: 800, color: "#0A0F1E",
+                  cursor: checking ? "not-allowed" : "pointer", fontFamily: "inherit",
+                  boxShadow: checking ? "none" : `0 6px 24px ${GOLD}44`, transition: "all 0.3s", letterSpacing: "0.01em" }}>
+                {checking ? "⏳ Analysing..." : "🔍 Check My Eligibility"}
+              </button>
+              <div style={{ fontSize: 11, color: textSub, textAlign: "center", marginTop: 10 }}>
+                🔒 No credit inquiry made · Results are indicative only
+              </div>
+            </div>
+
+            {/* Result Panel */}
+            {result && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                {/* Score ring */}
+                <div style={{ background: darkMode ? "rgba(255,255,255,0.03)" : "rgba(10,15,30,0.04)", border: `1px solid ${result.verdictColor}44`, borderRadius: 20, padding: "28px 24px", textAlign: "center" }}>
+                  <div style={{ fontSize: 68, fontWeight: 900, color: result.verdictColor, lineHeight: 1, fontFamily: "serif" }}>{result.overall}%</div>
+                  <div style={{ fontSize: 13, color: result.verdictColor, fontWeight: 700, marginTop: 8, marginBottom: 16 }}>{result.verdict}</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    <div style={{ background: darkMode ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.8)", borderRadius: 10, padding: "10px 12px" }}>
+                      <div style={{ fontSize: 11, color: textSub }}>Est. Monthly EMI</div>
+                      <div style={{ fontWeight: 800, fontSize: 16, color: GOLD }}>₹{result.newEmi.toLocaleString("en-IN")}</div>
+                    </div>
+                    <div style={{ background: darkMode ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.8)", borderRadius: 10, padding: "10px 12px" }}>
+                      <div style={{ fontSize: 11, color: textSub }}>Max Eligible Amount</div>
+                      <div style={{ fontWeight: 800, fontSize: 16, color: GOLD }}>₹{(result.maxLoan / 100000).toFixed(1)}L</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Score bars */}
+                <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: "20px 20px" }}>
+                  <div style={{ fontWeight: 800, fontSize: 13, color: darkMode ? "#CBD5E1" : "#0A0F1E", marginBottom: 14 }}>📊 Score Breakdown</div>
+                  {result.bars.map(b => (
+                    <div key={b.label} style={{ marginBottom: 14 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 5 }}>
+                        <span style={{ color: textSub }}>{b.label}</span>
+                        <span style={{ color: b.color, fontWeight: 700 }}>{b.label2}</span>
+                      </div>
+                      <div style={{ height: 6, background: "rgba(255,255,255,0.08)", borderRadius: 3 }}>
+                        <div style={{ width: `${b.value}%`, height: 6, borderRadius: 3, background: b.color, transition: "width 0.8s ease" }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Best bank matches */}
+                <div style={{ background: cardBg, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: "20px" }}>
+                  <div style={{ fontWeight: 800, fontSize: 13, color: darkMode ? "#CBD5E1" : "#0A0F1E", marginBottom: 12 }}>🏦 Best Matched Banks</div>
+                  {result.banks.map((b, i) => (
+                    <div key={b.name} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: i < result.banks.length - 1 ? `1px solid rgba(255,255,255,0.06)` : "none" }}>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: darkMode ? "#F0F4FF" : "#0A0F1E" }}>{b.name}</div>
+                        <div style={{ fontSize: 11, color: textSub }}>{b.note}</div>
+                      </div>
+                      <div style={{ fontSize: 15, fontWeight: 900, color: GOLD }}>{b.rate}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Tips */}
+                {result.tips.length > 0 && (
+                  <div style={{ background: `${GOLD}08`, border: `1px solid ${GOLD}30`, borderRadius: 16, padding: "16px 20px" }}>
+                    <div style={{ fontWeight: 800, fontSize: 12, color: GOLD, marginBottom: 10 }}>💡 TIPS TO IMPROVE YOUR CHANCES</div>
+                    {result.tips.map((t, i) => (
+                      <div key={i} style={{ fontSize: 12, color: textSub, lineHeight: 1.7, marginBottom: 6, paddingLeft: 12, borderLeft: `2px solid ${GOLD}40` }}>{t}</div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Apply CTA */}
+                <button onClick={() => scrollTo("loans")}
+                  style={{ width: "100%", padding: "15px", background: `linear-gradient(135deg, ${GOLD}, #B8862A)`, border: "none", borderRadius: 12, fontWeight: 800, fontSize: 15, color: "#0A0F1E", cursor: "pointer", fontFamily: "inherit" }}>
+                  🚀 Apply Now with Best Bank
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function BankSection({ id, styles, darkMode, textSub, GOLD, cardBorder }) {
   const [ref, inView] = useInView(0.1);
   return (
@@ -2159,6 +2469,184 @@ function InsuranceSection({ id, styles, darkMode, textSub, GOLD, cardBorder, act
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// LOAN ELIGIBILITY CHECKER
+// ═══════════════════════════════════════════════════════════════════════════════
+function EligibilityChecker({ styles, darkMode, textSub, GOLD, cardBorder }) {
+  const [form, setForm] = useState({ salary: "", age: "", amount: "" });
+  const [result, setResult] = useState(null);
+  const LOAN_PRODUCTS = [
+    { name: "Personal Loan", minSalary: 15000, minAge: 21, maxAge: 58, multiplier: 20, color: "#3B82F6", icon: "💰" },
+    { name: "Home Loan", minSalary: 25000, minAge: 21, maxAge: 65, multiplier: 60, color: GOLD, icon: "🏠" },
+    { name: "Business Loan", minSalary: 20000, minAge: 21, maxAge: 65, multiplier: 30, color: "#A855F7", icon: "🏢" },
+    { name: "Loan Against Property", minSalary: 20000, minAge: 23, maxAge: 65, multiplier: 48, color: "#22c55e", icon: "🏗️" },
+  ];
+  const check = () => {
+    const sal = parseInt(form.salary) || 0;
+    const age = parseInt(form.age) || 0;
+    const amt = parseInt(form.amount.replace(/,/g, "")) || 0;
+    const eligible = LOAN_PRODUCTS.filter(p => sal >= p.minSalary && age >= p.minAge && age <= p.maxAge && amt <= sal * p.multiplier);
+    setResult({ eligible, sal, age, amt });
+  };
+  return (
+    <section style={{ padding: "80px 16px 60px", maxWidth: 1200, margin: "0 auto" }} id="eligibility-checker">
+      <div style={{ textAlign: "center", marginBottom: 48 }}>
+        <div style={{ ...styles.tag, marginBottom: 16 }}>INSTANT CHECK</div>
+        <h2 style={styles.sectionTitle}>Check Your Loan <span style={styles.goldGrad}>Eligibility</span></h2>
+        <p style={{ color: textSub, fontSize: 16, maxWidth: 480, margin: "0 auto" }}>Find out which loan products you qualify for in under 30 seconds</p>
+      </div>
+      <div style={{ ...styles.glassCard, maxWidth: 640, margin: "0 auto", border: `1px solid ${GOLD}33` }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 20 }}>
+          {[
+            { label: "Monthly Income (₹)", key: "salary", placeholder: "e.g. 50000" },
+            { label: "Age (years)", key: "age", placeholder: "e.g. 32" },
+            { label: "Loan Amount (₹)", key: "amount", placeholder: "e.g. 5,00,000" },
+          ].map(f => (
+            <div key={f.key}>
+              <label style={styles.label}>{f.label}</label>
+              <input style={styles.input} value={form[f.key]} onChange={e => setForm({ ...form, [f.key]: e.target.value })} placeholder={f.placeholder} type="text" />
+            </div>
+          ))}
+        </div>
+        <button style={{ ...styles.goldBtn, width: "100%", padding: "14px", fontSize: 15, borderRadius: 12 }} className="gold-hover" onClick={check}>⚡ Check Eligibility Now</button>
+        {result && (
+          <div style={{ marginTop: 24 }}>
+            {result.eligible.length > 0 ? (
+              <>
+                <div style={{ textAlign: "center", marginBottom: 16, fontSize: 15, fontWeight: 700, color: "#22c55e" }}>🎉 You qualify for {result.eligible.length} loan product{result.eligible.length > 1 ? "s" : ""}!</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  {result.eligible.map((p, i) => (
+                    <div key={i} style={{ padding: "14px 16px", borderRadius: 12, background: `${p.color}12`, border: `1px solid ${p.color}33`, display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ fontSize: 22 }}>{p.icon}</span>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: p.color }}>{p.name}</div>
+                        <div style={{ fontSize: 11, color: textSub }}>Up to ₹{(result.sal * p.multiplier).toLocaleString("en-IN")}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: 16, textAlign: "center", fontSize: 13, color: textSub }}>Results are indicative. Final approval subject to lender's credit policy.</div>
+              </>
+            ) : (
+              <div style={{ textAlign: "center", padding: "20px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 12 }}>
+                <div style={{ fontSize: 32, marginBottom: 8 }}>😔</div>
+                <div style={{ fontWeight: 700, marginBottom: 8, color: "#ef4444" }}>Not enough data or criteria not met</div>
+                <div style={{ fontSize: 13, color: textSub, marginBottom: 16 }}>Try a lower loan amount or contact us — we may still find options for you.</div>
+                <a href="https://wa.me/919937133335?text=Hi!%20I%20want%20to%20discuss%20loan%20eligibility." target="_blank" rel="noreferrer" style={{ ...styles.goldBtn, textDecoration: "none", background: "linear-gradient(135deg,#25D366,#128C7E)", display: "inline-block" }}>💬 Talk to an Advisor</a>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BLOG / ARTICLES SECTION
+// ═══════════════════════════════════════════════════════════════════════════════
+function BlogSection({ styles, darkMode, textSub, GOLD, cardBorder }) {
+  const [ref, inView] = useInView(0.15);
+  const articles = [
+    { tag: "CIBIL SCORE", title: "How to Improve Your CIBIL Score Fast", excerpt: "A low CIBIL score can block your loan approval. Here are 7 proven strategies to raise your score above 750 within 6 months.", readTime: "4 min read", icon: "📊", color: "#3B82F6" },
+    { tag: "HOME LOAN", title: "Home Loan vs LAP — Which Is Better For You?", excerpt: "Both use property as collateral, but serve different purposes and carry different risks. We break down the key differences.", readTime: "5 min read", icon: "🏠", color: GOLD },
+    { tag: "TAX SAVING", title: "5 Ways to Maximize Your Section 80C Deductions", excerpt: "Most salaried individuals leave ₹50,000+ in tax savings on the table. Here's how to claim the full ₹1.5 Lakh deduction.", readTime: "3 min read", icon: "📋", color: "#22c55e" },
+    { tag: "PERSONAL LOAN", title: "Personal Loan Without ITR — Is It Possible?", excerpt: "Yes! Many banks and NBFCs offer personal loans to self-employed individuals and new borrowers without ITR proof.", readTime: "4 min read", icon: "💰", color: "#A855F7" },
+  ];
+  return (
+    <section ref={ref} style={{ padding: "80px 16px 60px", maxWidth: 1200, margin: "0 auto" }}>
+      <div style={{ textAlign: "center", marginBottom: 48 }}>
+        <div style={{ ...styles.tag, marginBottom: 16 }}>KNOWLEDGE HUB</div>
+        <h2 style={styles.sectionTitle}>Financial <span style={styles.goldGrad}>Insights</span></h2>
+        <p style={{ color: textSub, fontSize: 16, maxWidth: 500, margin: "0 auto" }}>Expert guides to help you make smarter financial decisions</p>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 24 }}>
+        {articles.map((a, i) => (
+          <div key={i} className={`hover-card ${inView ? "fade-in" : ""}`} style={{ ...styles.glassCard, padding: 0, overflow: "hidden", animationDelay: `${i * 0.1}s`, cursor: "pointer", border: `1px solid ${a.color}20`, display: "flex", flexDirection: "column" }}>
+            <div style={{ height: 6, background: `linear-gradient(90deg, ${a.color}, ${a.color}44)` }} />
+            <div style={{ padding: "22px 22px 18px", flex: 1, display: "flex", flexDirection: "column" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                <div style={{ width: 42, height: 42, background: `${a.color}18`, border: `1px solid ${a.color}33`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>{a.icon}</div>
+                <span style={{ fontSize: 10, fontWeight: 800, color: a.color, letterSpacing: "0.08em", background: `${a.color}14`, padding: "3px 9px", borderRadius: 10 }}>{a.tag}</span>
+              </div>
+              <div style={{ fontWeight: 800, fontSize: 15, lineHeight: 1.4, marginBottom: 10, flex: 1 }}>{a.title}</div>
+              <div style={{ fontSize: 13, color: textSub, lineHeight: 1.65, marginBottom: 16 }}>{a.excerpt}</div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 11, color: textSub }}>⏱ {a.readTime}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: a.color }}>Read →</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// GENERAL FAQ SECTION
+// ═══════════════════════════════════════════════════════════════════════════════
+function FaqSection({ styles, darkMode, textSub, GOLD, cardBorder }) {
+  const [active, setActive] = useState(null);
+  const [ref, inView] = useInView(0.1);
+  const faqs = [
+    { q: "What documents are needed to apply for a loan?", a: "For salaried individuals: Aadhaar, PAN, last 3 months salary slips, 6-month bank statement, and Form 16. For self-employed: Aadhaar, PAN, 2-year ITR, GST registration, 12-month bank statement, and business proof." },
+    { q: "How long does loan approval take?", a: "Personal loans are typically approved within 24–48 hours. Home loans and business loans may take 5–10 working days depending on document verification and lender processing timelines." },
+    { q: "Do you charge any fee for your services?", a: "Our loan referral and advisory services are completely free for borrowers. We earn a referral commission from the lending institution only after your loan is successfully disbursed." },
+    { q: "Will applying through One Point Finance Hub affect my CIBIL score?", a: "We do a soft inquiry first to assess your profile, which does not impact your CIBIL score. A hard inquiry occurs only when an actual loan application is submitted to a lender." },
+    { q: "Can I get a loan if my CIBIL score is below 700?", a: "Yes, in many cases. Several NBFCs offer loans to applicants with lower scores, especially for business loans with collateral or when there is a strong income history. Our advisors will evaluate your options." },
+    { q: "What is the minimum and maximum loan amount you can assist with?", a: "We assist with personal loans from ₹50,000 to ₹50 Lakhs, business loans from ₹2 Lakhs to ₹5 Crores, and home loans from ₹10 Lakhs up to ₹10 Crores depending on eligibility." },
+    { q: "Are you a direct lender or a DSA?", a: "One Point Finance Hub is a registered Direct Selling Agent (DSA). We are not a bank or NBFC. We do not lend money directly — we connect borrowers with the best-fit lenders from our network of 15+ banks and NBFCs." },
+  ];
+  return (
+    <section ref={ref} style={{ padding: "80px 16px 60px", maxWidth: 900, margin: "0 auto" }}>
+      <div style={{ textAlign: "center", marginBottom: 48 }}>
+        <div style={{ ...styles.tag, marginBottom: 16 }}>HELP CENTER</div>
+        <h2 style={styles.sectionTitle}>Frequently Asked <span style={styles.goldGrad}>Questions</span></h2>
+        <p style={{ color: textSub, fontSize: 16, maxWidth: 480, margin: "0 auto" }}>Everything you need to know before applying</p>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {faqs.map((faq, i) => (
+          <div key={i} className={inView ? "fade-in" : ""} style={{ ...styles.glassCard, padding: "18px 24px", cursor: "pointer", animationDelay: `${i * 0.07}s`, border: active === i ? `1px solid ${GOLD}55` : `1px solid ${cardBorder}`, transition: "border-color 0.25s" }} onClick={() => setActive(active === i ? null : i)}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
+              <span style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.4, flex: 1 }}>{faq.q}</span>
+              <span style={{ color: GOLD, fontSize: 20, flexShrink: 0, transition: "transform 0.3s", display: "inline-block", transform: active === i ? "rotate(45deg)" : "rotate(0deg)" }}>+</span>
+            </div>
+            {active === i && (
+              <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${cardBorder}`, fontSize: 14, color: textSub, lineHeight: 1.8, animation: "fadeSlideIn 0.22s ease forwards" }}>{faq.a}</div>
+            )}
+          </div>
+        ))}
+      </div>
+      <div style={{ textAlign: "center", marginTop: 36, padding: "24px", background: `${GOLD}0a`, borderRadius: 16, border: `1px solid ${GOLD}22` }}>
+        <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 8 }}>Still have questions?</div>
+        <div style={{ fontSize: 14, color: textSub, marginBottom: 18 }}>Our team is available Mon–Sat, 9 AM to 7 PM</div>
+        <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+          <a href="tel:+919937133335" style={{ ...styles.goldBtn, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>📞 Call Us</a>
+          <a href="https://wa.me/919937133335?text=Hi!%20I%20have%20a%20question." target="_blank" rel="noreferrer" style={{ ...styles.goldBtn, textDecoration: "none", background: "linear-gradient(135deg,#25D366,#128C7E)", display: "inline-flex", alignItems: "center", gap: 6 }}>💬 WhatsApp</a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TAWK.TO LIVE CHAT INJECTOR
+// ═══════════════════════════════════════════════════════════════════════════════
+function TawkToChat() {
+  useEffect(() => {
+    if (document.getElementById("tawkto-script")) return;
+    const s = document.createElement("script");
+    s.id = "tawkto-script";
+    s.async = true;
+    s.src = "https://embed.tawk.to/YOUR_TAWKTO_PROPERTY_ID/default";
+    s.charset = "UTF-8";
+    s.setAttribute("crossorigin", "*");
+    document.body.appendChild(s);
+  }, []);
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // FOOTER
 // ═══════════════════════════════════════════════════════════════════════════════
 function Footer({ styles, darkMode, textSub, GOLD, cardBorder, scrollTo }) {
@@ -2179,7 +2667,7 @@ function Footer({ styles, darkMode, textSub, GOLD, cardBorder, scrollTo }) {
                 <div style={{ fontSize: 10, color: GOLD, letterSpacing: "0.08em" }}>TRUSTED LOAN ADVISORY · PAN INDIA</div>
               </div>
             </div>
-            <p style={{ fontSize: 13, lineHeight: 1.8, marginBottom: 20, maxWidth: 300, color: "#64748B" }}>Connecting India with the best loan products. Headquartered in Bhubaneswar, Odisha. 500+ loans facilitated. 1,200+ satisfied customers.</p>
+            <p style={{ fontSize: 13, lineHeight: 1.8, marginBottom: 20, maxWidth: 300, color: "#64748B" }}>Connecting India with the best loan products. Headquartered in Bhubaneswar, Odisha. 2,500+ loans facilitated. 5,000+ satisfied customers. ₹500 Cr+ disbursed.</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 20 }}>
               {[["📍", "123, Saheed Nagar, Bhubaneswar, Odisha – 751007"], ["📞", "+91 99371 33335"], ["✉️", "onepointfinancehub@gmail.com"], ["🌐", "www.onepointfinancehub.com"]].map(([icon, val]) => (
                 <div key={val} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12, color: "#64748B" }}>
@@ -2209,7 +2697,7 @@ function Footer({ styles, darkMode, textSub, GOLD, cardBorder, scrollTo }) {
           ))}
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", marginBottom: 28, paddingBottom: 28, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          {[["🔒", "SSL Secured"], ["🏦", "RBI Compliant"], ["✅", "CIBIL Integrated"], ["📋", "Zero Hidden Charges"], ["⚡", "24–48 Hr Approval"]].map(([icon, label]) => (
+          {[["🔒", "SSL Secured"], ["🏦", "RBI Compliant"], ["✅", "DSA Registered"], ["📋", "Zero Hidden Charges"], ["⚡", "24–48 Hr Approval"], ["🛡️", "CIBIL Integrated"], ["🏆", "ISO Certified Process"]].map(([icon, label]) => (
             <div key={label} style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 8 }}>
               <span style={{ fontSize: 14 }}>{icon}</span>
               <span style={{ fontSize: 12, fontWeight: 600, color: "#64748B" }}>{label}</span>
@@ -2219,10 +2707,7 @@ function Footer({ styles, darkMode, textSub, GOLD, cardBorder, scrollTo }) {
         <div style={{ padding: "24px 28px", background: "rgba(255,255,255,0.025)", borderRadius: 14, border: "1px solid rgba(255,255,255,0.07)", marginBottom: 32 }}>
           <div style={{ fontWeight: 800, color: "#94A3B8", fontSize: 12, marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}><span>⚠️</span> REGULATORY DISCLOSURE</div>
           <p style={{ fontSize: 12, lineHeight: 1.8, color: "#475569", margin: 0 }}>
-            <strong style={{ color: "#64748B" }}>One Point Finance Hub</strong> operates as a registered Direct Selling Agent (DSA) and loan referral intermediary. We are <strong style={{ color: "#94A3B8" }}>not a bank, financial institution, or licensed lender</strong>. We do not lend money directly, accept deposits, or guarantee loan approvals. All loan products are offered, sanctioned, and disbursed solely by the respective financial institutions, subject to their eligibility criteria and credit policies. Interest rates, fees, and terms are set exclusively by the lender. We are not liable for any credit decisions or outcomes. Insurance Advisory: We act as advisory partners. Final policy issuance and underwriting is subject to insurer approval. Customers are advised to review all documents carefully.{" "}
-            <a href="#" style={{ color: GOLD, textDecoration: "none" }}>Privacy Policy</a> ·{" "}
-            <a href="#" style={{ color: GOLD, textDecoration: "none" }}>Terms of Service</a> ·{" "}
-            <a href="#" style={{ color: GOLD, textDecoration: "none" }}>Disclaimer</a>
+            <strong style={{ color: "#64748B" }}>One Point Finance Hub</strong> operates as a registered Direct Selling Agent (DSA) and loan referral intermediary. We are <strong style={{ color: "#94A3B8" }}>not a bank, financial institution, or licensed lender</strong>. We do not lend money directly, accept deposits, or guarantee loan approvals. All loan products are offered, sanctioned, and disbursed solely by the respective financial institutions, subject to their eligibility criteria and credit policies. Interest rates, fees, and terms are set exclusively by the lender. We are not liable for any credit decisions or outcomes. Insurance Advisory: We act as advisory partners. Final policy issuance and underwriting is subject to insurer approval. Customers are advised to review all documents carefully.
           </p>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 0", borderTop: "1px solid rgba(255,255,255,0.06)", flexWrap: "wrap", gap: 12, marginBottom: 0 }}>
